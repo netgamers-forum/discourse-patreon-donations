@@ -4,6 +4,10 @@ class PatreonStatsController < ::ApplicationController
   requires_plugin 'discourse-patreon-donations'
 
   def show
+    Rails.logger.info("PatreonStatsController#show - Plugin enabled: #{SiteSetting.patreon_donations_enabled}")
+    Rails.logger.info("PatreonStatsController#show - API version: #{SiteSetting.patreon_donations_api_version}")
+    Rails.logger.info("PatreonStatsController#show - Campaign ID: #{SiteSetting.patreon_donations_campaign_id}")
+    
     unless SiteSetting.patreon_donations_enabled
       return render_json_error(I18n.t('patreon_stats.error.not_configured'), status: 503)
     end
@@ -11,6 +15,9 @@ class PatreonStatsController < ::ApplicationController
     stats = fetch_cached_stats
     monthly_history = fetch_monthly_history
 
+    Rails.logger.info("PatreonStatsController#show - Stats present: #{stats.present?}")
+    Rails.logger.info("PatreonStatsController#show - Stats: #{stats.inspect}")
+    
     if stats
       render json: { 
         stats: stats,
