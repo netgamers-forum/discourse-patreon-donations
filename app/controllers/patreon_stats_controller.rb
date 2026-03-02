@@ -3,10 +3,6 @@
 class PatreonStatsController < ::ApplicationController
   requires_plugin 'discourse-patreon-donations'
 
-  def index
-    # Render the patreon stats page
-  end
-
   def show
     unless SiteSetting.patreon_donations_enabled
       return render_json_error(I18n.t('patreon_stats.error.not_configured'), status: 503)
