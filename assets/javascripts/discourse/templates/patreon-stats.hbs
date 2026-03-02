@@ -1,7 +1,12 @@
 <div class="patreon-stats-page">
-  <h1>{{i18n "patreon_stats.title"}}</h1>
+  <h1>Patreon Campaign Statistics</h1>
   
-  {{#if model.stats}}
+  {{#if model.error}}
+    <div class="patreon-stats-error">
+      <p class="error-message">⚠️ {{model.message}}</p>
+      <p>Please check the Discourse logs for more details or contact an administrator.</p>
+    </div>
+  {{else if model.stats}}
     <div class="patreon-stats-container">
       <div class="stat-card">
         <h3>Active Subscribers</h3>

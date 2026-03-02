@@ -66,15 +66,38 @@ module DiscoursePatreonDonations
 
     def make_request(endpoint, params = {})
       uri = build_uri(endpoint, params)
-      request = build_request(uri)
-
-      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-        http.request(request)
+      
+      # Follow redirects (up to 5 times)
+      redirect_limit = 5
+      redirect_count = 0
+      
+      loop do
+        request = build_request(uri)
+        
+        response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') do |http|
+          http.request(request)
+        end
+        
+        case response
+        when Net::HTTPSuccess
+          return handle_response(response)
+        when Net::HTTPRedirection
+          redirect_count += 1
+          if redirect_count > redirect_limit
+            Rails.logger.error("Patreon API: Too many redirects (>#{redirect_limit})")
+            return nil
+          end
+          
+          location = response['location']
+          Rails.logger.info("Patreon API: Following redirect to #{location}")
+          uri = URI(location)
+        else
+          return handle_response(response)
+        end
       end
-
-      handle_response(response)
     rescue StandardError => e
-      Rails.logger.error("Patreon API error: #{e.message}")
+      Rails.logger.error("Patreon API error: #{e.class} - #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n")) if Rails.env.development?
       nil
     end
 
@@ -96,13 +119,19 @@ module DiscoursePatreonDonations
       when 200
         JSON.parse(response.body)
       when 401
-        Rails.logger.error("Patreon API: Unauthorized - check access token")
+        Rails.logger.error("Patreon API: Unauthorized (401) - Invalid or expired access token")
+        Rails.logger.error("  Please check your Creator Access Token in plugin settings")
+        nil
+      when 403
+        Rails.logger.error("Patreon API: Forbidden (403) - Token may be missing required scopes")
+        Rails.logger.error("  Required scopes: 'campaigns' and 'campaigns.members'")
         nil
       when 429
-        Rails.logger.warn("Patreon API: Rate limited - retry after #{response['Retry-After']} seconds")
+        Rails.logger.warn("Patreon API: Rate limited (429) - retry after #{response['Retry-After']} seconds")
         nil
       else
         Rails.logger.error("Patreon API error: HTTP #{response.code}")
+        Rails.logger.error("Response body: #{response.body[0..500]}") if response.body
         nil
       end
     end

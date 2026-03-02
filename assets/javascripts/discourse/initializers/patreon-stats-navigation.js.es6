@@ -15,7 +15,7 @@ export default {
       api.decorateWidget("hamburger-menu:generalLinks", () => {
         return {
           route: "patreon-stats",
-          label: "patreon_stats.title",
+          label: "Patreon Statistics",
           className: "patreon-stats-link"
         };
       });
@@ -25,8 +25,8 @@ export default {
         api.addCommunitySectionLink({
           name: "patreon-stats",
           route: "patreon-stats",
-          text: "patreon_stats.title",
-          title: "patreon_stats.title"
+          text: "Patreon Statistics",
+          title: "View Patreon campaign statistics"
         });
       }
     });
