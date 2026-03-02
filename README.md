@@ -131,7 +131,7 @@ Sum of all currently_entitled_amount_cents
      - Client Secret
      - Access Token
      - Refresh Token
-     - Campaign ID
+     - Campaign ID (see [How to Get Your Campaign ID](#how-to-get-your-campaign-id))
    - Set sync frequency (default: daily)
    - Save settings
 
@@ -154,6 +154,37 @@ Sum of all currently_entitled_amount_cents
 | `patreon_cache_duration` | Cache duration (minutes) | 30 |
 | `patreon_show_in_sidebar` | Add link to sidebar | true |
 | `patreon_page_title` | Custom page title | "Patreon Support" |
+
+### How to Get Your Campaign ID
+
+Your Patreon campaign ID is required for the plugin to fetch data from your specific campaign. Here are the easiest ways to obtain it:
+
+#### Option 1: Use the Patreon API (Recommended)
+
+After obtaining your access token, make an API call:
+
+```bash
+curl --request GET \
+  --url 'https://www.patreon.com/api/oauth2/v2/campaigns' \
+  --header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
+```
+
+The campaign ID will be in the response's `data[0].id` field (e.g., "1234560").
+
+#### Option 2: From Patreon Creator Dashboard
+
+1. Visit https://www.patreon.com/portal/campaigns
+2. Click on your campaign
+3. Look at the URL: `https://www.patreon.com/portal/campaigns/CAMPAIGN_ID/...`
+4. Copy the numeric ID from the URL
+
+#### Option 3: From Campaign URL
+
+**Note**: The public campaign URL (e.g., `patreon.com/yourname`) does **not** contain the campaign ID. You must use one of the methods above.
+
+**Important**: Most creators only have one campaign, so calling the `/campaigns` endpoint will automatically return your campaign ID.
+
+For more details, see [PATREON_API_REFERENCE.md](docs/PATREON_API_REFERENCE.md#how-to-get-your-campaign-id).
 
 ### Permissions
 

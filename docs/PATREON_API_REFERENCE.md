@@ -21,6 +21,58 @@ This document outlines the Patreon API v2 endpoints used by this plugin.
 - `campaigns` - To access campaign information
 - `campaigns.members` - To access member/patron data
 
+## How to Get Your Campaign ID
+
+There are several ways to obtain your Patreon campaign ID:
+
+### Method 1: Using the API (Recommended)
+
+After obtaining your access token, call the campaigns endpoint:
+
+```bash
+curl --request GET \
+  --url 'https://www.patreon.com/api/oauth2/v2/campaigns' \
+  --header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
+```
+
+The response will include your campaign ID in the `id` field:
+
+```json
+{
+  "data": [{
+    "id": "1234560",
+    "type": "campaign",
+    "attributes": { ... }
+  }]
+}
+```
+
+### Method 2: From Your Patreon Page URL
+
+Your campaign ID may be visible in certain Patreon URLs:
+
+- **Creator Dashboard**: Visit https://www.patreon.com/portal/campaigns
+  - Click on your campaign
+  - The URL will be: `https://www.patreon.com/portal/campaigns/CAMPAIGN_ID/...`
+  - Extract the numeric ID from the URL
+
+- **API Documentation Page**: When testing API calls in the Patreon developer portal, the campaign ID is often pre-filled in example URLs
+
+### Method 3: From Browser Developer Tools
+
+1. Log into Patreon as the creator
+2. Visit your campaign page
+3. Open browser developer tools (F12)
+4. Go to the Network tab
+5. Look for API calls to `patreon.com/api/oauth2/v2/campaigns`
+6. Inspect the response to find the campaign `id`
+
+### Important Notes
+
+- The campaign ID is a numeric string (e.g., "1234560")
+- You only need this ID if you have multiple campaigns (most creators have just one)
+- If you only have one campaign, the API will return it automatically
+
 ## Rate Limits
 
 - **Client level**: 100 requests per 2 seconds
