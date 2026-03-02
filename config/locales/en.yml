@@ -10,7 +10,7 @@ en:
     patreon_cache_duration: "Cache duration for Patreon stats (minutes)"
     patreon_sync_frequency: "Background sync frequency (hours)"
 
-  js:
+  admin_js:
     admin:
       site_settings:
         categories:
