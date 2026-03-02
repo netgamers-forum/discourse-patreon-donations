@@ -447,3 +447,85 @@ When implementing a new feature:
 ```
 
 Each commit is small, focused, and can be reviewed independently.
+
+## Next Steps
+
+Now that the initial plugin structure is complete, the following steps remain:
+
+### 1. Add Database Migration
+
+Create a migration file for the `patreon_cache` table:
+
+```ruby
+# db/migrate/20260302000001_create_patreon_cache.rb
+class CreatePatreonCache < ActiveRecord::Migration[7.0]
+  def change
+    create_table :patreon_cache do |t|
+      t.string :campaign_id, null: false
+      t.text :data, null: false
+      t.datetime :last_synced_at
+      t.timestamps
+    end
+
+    add_index :patreon_cache, :campaign_id, unique: true
+  end
+end
+```
+
+### 2. Write Tests
+
+Write comprehensive tests for services and controllers:
+
+**Service Tests**:
+- `spec/services/patreon_api_client_spec.rb` - Test API client methods, error handling, pagination
+- `spec/services/patreon_stats_calculator_spec.rb` - Test stat calculations with various scenarios
+- `spec/models/patreon_cache_spec.rb` - Test cache model methods and expiration logic
+
+**Controller Tests**:
+- `spec/requests/patreon_stats_controller_spec.rb` - Test HTTP endpoints, caching, error responses
+
+**Job Tests**:
+- `spec/jobs/sync_patreon_data_spec.rb` - Test background job execution and scheduling
+
+### 3. Test in Development Discourse Instance
+
+Deploy and test the plugin in a local Discourse development environment:
+
+1. Clone Discourse repository
+2. Symlink plugin to `plugins/` directory
+3. Run database migrations
+4. Start Discourse server
+5. Configure OAuth credentials in admin settings
+6. Access `/patreon-stats` route
+7. Verify stats display correctly
+8. Monitor background job execution
+9. Test error scenarios (invalid credentials, API failures)
+
+### 4. Configure OAuth Credentials
+
+Set up Patreon OAuth application and configure credentials:
+
+1. Register application at: https://www.patreon.com/portal/registration/register-clients
+2. Note Client ID and Client Secret
+3. Complete OAuth flow to obtain Creator Access Token and Refresh Token
+4. In Discourse admin settings (`/admin/site_settings/category/patreon`):
+   - Enable Patreon integration
+   - Enter Client ID
+   - Enter Client Secret
+   - Enter Creator Access Token
+   - Enter Creator Refresh Token
+   - Enter Campaign ID
+   - Configure cache duration (default: 30 minutes)
+   - Configure sync frequency (default: 24 hours)
+
+### 5. Additional Enhancements (Optional)
+
+Consider these improvements for future iterations:
+
+- Add token refresh logic in API client
+- Implement exponential backoff for rate limits
+- Add staff-only access control to stats page
+- Create admin dashboard widgets for quick stats view
+- Add historical data tracking and trend charts
+- Implement webhook support for real-time updates
+- Add email notifications for milestone achievements
