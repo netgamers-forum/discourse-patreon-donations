@@ -13,6 +13,7 @@ module DiscoursePatreonDonations
     else
       Rails.logger.info("Patreon API: Using access token (length: #{@access_token.length})")
     end
+  end
 
     def fetch_campaign_data
       endpoint = '/campaigns'
