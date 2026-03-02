@@ -1,0 +1,28 @@
+# frozen_string_literal: true
+
+# name: discourse-patreon-donations
+# about: Display Patreon campaign statistics including active subscribers and donation amounts
+# version: 0.1.0
+# authors: NetGamers
+# url: https://github.com/netgamers/discourse-patreon-donations
+
+enabled_site_setting :patreon_enabled
+
+register_asset 'stylesheets/patreon-stats.scss'
+
+after_initialize do
+  module ::DiscoursePatreonDonations
+    PLUGIN_NAME = 'discourse-patreon-donations'
+  end
+
+  require_relative 'app/models/patreon_cache'
+  require_relative 'app/services/patreon_api_client'
+  require_relative 'app/services/patreon_stats_calculator'
+  require_relative 'app/controllers/patreon_stats_controller'
+  require_relative 'app/jobs/sync_patreon_data'
+
+  Discourse::Application.routes.append do
+    get '/patreon-stats' => 'patreon_stats#index'
+    get '/patreon-stats.json' => 'patreon_stats#show'
+  end
+end
