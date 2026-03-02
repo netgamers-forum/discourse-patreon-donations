@@ -10,11 +10,11 @@ en:
     patreon_cache_duration: "Cache duration for Patreon stats (minutes)"
     patreon_sync_frequency: "Background sync frequency (hours)"
 
-  admin_js:
+  js:
     admin:
       site_settings:
         categories:
-          patreon: "Patreon Campaign Integration"
+          patreon: "Patreon"
   
   patreon_stats:
     title: "Patreon Campaign Statistics"
