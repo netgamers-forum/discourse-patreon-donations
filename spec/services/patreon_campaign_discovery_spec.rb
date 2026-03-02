@@ -6,9 +6,9 @@ describe DiscoursePatreonDonations::PatreonCampaignDiscovery do
   fab!(:admin) { Fabricate(:admin) }
 
   before do
-    SiteSetting.patreon_enabled = true
-    SiteSetting.patreon_creator_access_token = 'test_token_123'
-    SiteSetting.patreon_campaign_url = 'patreon.com/testcampaign'
+    SiteSetting.patreon_donations_enabled = true
+    SiteSetting.patreon_donations_creator_access_token = 'test_token_123'
+    SiteSetting.patreon_donations_campaign_url = 'patreon.com/testcampaign'
   end
 
   describe '.discover_and_save' do
@@ -25,7 +25,7 @@ describe DiscoursePatreonDonations::PatreonCampaignDiscovery do
 
       it 'saves the campaign ID to settings' do
         described_class.discover_and_save
-        expect(SiteSetting.patreon_campaign_id).to eq('9070965')
+        expect(SiteSetting.patreon_donations_campaign_id).to eq('9070965')
       end
 
       it 'returns true' do
@@ -44,9 +44,9 @@ describe DiscoursePatreonDonations::PatreonCampaignDiscovery do
       end
 
       it 'does not update settings' do
-        original_id = SiteSetting.patreon_campaign_id
+        original_id = SiteSetting.patreon_donations_campaign_id
         described_class.discover_and_save
-        expect(SiteSetting.patreon_campaign_id).to eq(original_id)
+        expect(SiteSetting.patreon_donations_campaign_id).to eq(original_id)
       end
 
       it 'returns false' do
@@ -61,7 +61,7 @@ describe DiscoursePatreonDonations::PatreonCampaignDiscovery do
 
     context 'when campaign URL is not present' do
       before do
-        SiteSetting.patreon_campaign_url = ''
+        SiteSetting.patreon_donations_campaign_url = ''
       end
 
       it 'returns false without calling API' do

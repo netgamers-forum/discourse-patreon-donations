@@ -4,13 +4,13 @@ require 'rails_helper'
 
 describe DiscoursePatreonDonations::PatreonStatsController do
   before do
-    SiteSetting.patreon_enabled = true
-    SiteSetting.patreon_campaign_id = '9070965'
+    SiteSetting.patreon_donations_enabled = true
+    SiteSetting.patreon_donations_campaign_id = '9070965'
   end
 
   describe '#show' do
     context 'when Patreon is not enabled' do
-      before { SiteSetting.patreon_enabled = false }
+      before { SiteSetting.patreon_donations_enabled = false }
 
       it 'returns 503 error' do
         get '/patreon-stats.json'

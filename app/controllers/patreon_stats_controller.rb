@@ -8,7 +8,7 @@ class PatreonStatsController < ::ApplicationController
   end
 
   def show
-    unless SiteSetting.patreon_enabled
+    unless SiteSetting.patreon_donations_enabled
       return render_json_error(I18n.t('patreon_stats.error.not_configured'), status: 503)
     end
 
@@ -37,10 +37,10 @@ class PatreonStatsController < ::ApplicationController
   end
 
   def fetch_monthly_history
-    return [] unless SiteSetting.patreon_campaign_id.present?
+    return [] unless SiteSetting.patreon_donations_campaign_id.present?
 
     DiscoursePatreonDonations::PatreonMonthlyStat
-      .last_12_months(SiteSetting.patreon_campaign_id)
+      .last_12_months(SiteSetting.patreon_donations_campaign_id)
       .map(&:to_h)
   rescue StandardError => e
     Rails.logger.error("Error fetching monthly history: #{e.message}")
@@ -65,10 +65,10 @@ class PatreonStatsController < ::ApplicationController
   end
 
   def cache_key
-    "patreon_stats:#{SiteSetting.patreon_campaign_id}"
+    "patreon_stats:#{SiteSetting.patreon_donations_campaign_id}"
   end
 
   def cache_duration
-    SiteSetting.patreon_cache_duration.minutes
+    SiteSetting.patreon_donations_cache_duration.minutes
   end
 end

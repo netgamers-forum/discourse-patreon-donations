@@ -5,8 +5,8 @@ module DiscoursePatreonDonations
     BASE_URL = 'https://www.patreon.com/api/oauth2/v2'
     
     def initialize(access_token: nil, campaign_id: nil)
-      @access_token = access_token || SiteSetting.patreon_creator_access_token
-      @campaign_id = campaign_id || SiteSetting.patreon_campaign_id
+      @access_token = access_token || SiteSetting.patreon_donations_creator_access_token
+      @campaign_id = campaign_id || SiteSetting.patreon_donations_campaign_id
     end
 
     def fetch_campaign_data

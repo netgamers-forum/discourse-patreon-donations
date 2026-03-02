@@ -20,7 +20,7 @@ module DiscoursePatreonDonations
     def expired?
       return true if last_synced_at.nil?
       
-      cache_duration = SiteSetting.patreon_cache_duration.minutes
+      cache_duration = SiteSetting.patreon_donations_cache_duration.minutes
       last_synced_at < cache_duration.ago
     end
 

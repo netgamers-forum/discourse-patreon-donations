@@ -5,7 +5,7 @@ module ::Jobs
     every 1.hour
 
     def execute(args)
-      return unless SiteSetting.patreon_enabled
+      return unless SiteSetting.patreon_donations_enabled
       return unless should_sync?
 
       sync_patreon_data
@@ -17,7 +17,7 @@ module ::Jobs
     private
 
     def should_sync?
-      sync_frequency = SiteSetting.patreon_sync_frequency.hours
+      sync_frequency = SiteSetting.patreon_donations_sync_frequency.hours
       last_sync = last_sync_time
 
       return true if last_sync.nil?
@@ -48,14 +48,14 @@ module ::Jobs
 
     def cache_stats(stats)
       Rails.cache.write(
-        "patreon_stats:#{SiteSetting.patreon_campaign_id}",
+        "patreon_stats:#{SiteSetting.patreon_donations_campaign_id}",
         stats,
-        expires_in: SiteSetting.patreon_cache_duration.minutes
+        expires_in: SiteSetting.patreon_donations_cache_duration.minutes
       )
     end
 
     def record_monthly_snapshot(stats)
-      campaign_id = SiteSetting.patreon_campaign_id
+      campaign_id = SiteSetting.patreon_donations_campaign_id
       return unless campaign_id.present?
 
       now = Time.now.utc

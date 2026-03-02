@@ -4,9 +4,9 @@ require 'rails_helper'
 
 describe DiscoursePatreonDonations::PatreonApiClient do
   before do
-    SiteSetting.patreon_enabled = true
-    SiteSetting.patreon_creator_access_token = 'test_access_token'
-    SiteSetting.patreon_campaign_id = '9070965'
+    SiteSetting.patreon_donations_enabled = true
+    SiteSetting.patreon_donations_creator_access_token = 'test_access_token'
+    SiteSetting.patreon_donations_campaign_id = '9070965'
   end
 
   let(:client) { described_class.new }

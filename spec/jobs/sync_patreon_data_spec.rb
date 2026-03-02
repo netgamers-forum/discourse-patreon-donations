@@ -6,10 +6,10 @@ describe Jobs::SyncPatreonData do
   fab!(:campaign_id) { '9070965' }
 
   before do
-    SiteSetting.patreon_enabled = true
-    SiteSetting.patreon_campaign_id = campaign_id
-    SiteSetting.patreon_creator_access_token = 'test_token'
-    SiteSetting.patreon_sync_frequency = 24
+    SiteSetting.patreon_donations_enabled = true
+    SiteSetting.patreon_donations_campaign_id = campaign_id
+    SiteSetting.patreon_donations_creator_access_token = 'test_token'
+    SiteSetting.patreon_donations_sync_frequency = 24
   end
 
   let(:mock_client) { instance_double(DiscoursePatreonDonations::PatreonApiClient) }
@@ -35,7 +35,7 @@ describe Jobs::SyncPatreonData do
     end
 
     context 'when Patreon is disabled' do
-      before { SiteSetting.patreon_enabled = false }
+      before { SiteSetting.patreon_donations_enabled = false }
 
       it 'does not sync' do
         expect(mock_client).not_to receive(:fetch_campaign_data)
