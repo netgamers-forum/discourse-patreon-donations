@@ -129,10 +129,11 @@ Sum of all currently_entitled_amount_cents
    - Enter your Patreon credentials:
      - Client ID
      - Client Secret
-     - Access Token
+     - Access Token (Campaign ID will be auto-discovered when you save this)
      - Refresh Token
-     - Campaign ID (see [How to Get Your Campaign ID](#how-to-get-your-campaign-id))
+   - The Campaign ID will be automatically discovered and populated
    - Set sync frequency (default: daily)
+   - Save settings
    - Save settings
 
 4. **Verify Installation**
@@ -157,9 +158,11 @@ Sum of all currently_entitled_amount_cents
 
 ### How to Get Your Campaign ID
 
-Your Patreon campaign ID is required for the plugin to fetch data from your specific campaign. Here are the easiest ways to obtain it:
+**Good News**: The plugin **automatically discovers your campaign ID** when you save your Access Token. You typically don't need to do anything manually!
 
-#### Option 1: Use the Patreon API (Recommended)
+However, if auto-discovery fails or you want to verify the ID, here are manual methods:
+
+#### Option 1: Use the Patreon API
 
 After obtaining your access token, make an API call:
 
@@ -169,7 +172,7 @@ curl --request GET \
   --header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
 ```
 
-The campaign ID will be in the response's `data[0].id` field (e.g., "1234560").
+The campaign ID will be in the response's `data[0].id` field (e.g., "9070965").
 
 #### Option 2: From Patreon Creator Dashboard
 
@@ -178,11 +181,11 @@ The campaign ID will be in the response's `data[0].id` field (e.g., "1234560").
 3. Look at the URL: `https://www.patreon.com/portal/campaigns/CAMPAIGN_ID/...`
 4. Copy the numeric ID from the URL
 
-#### Option 3: From Campaign URL
+#### Important Notes
 
-**Note**: The public campaign URL (e.g., `patreon.com/yourname`) does **not** contain the campaign ID. You must use one of the methods above.
-
-**Important**: Most creators only have one campaign, so calling the `/campaigns` endpoint will automatically return your campaign ID.
+- The public campaign URL (e.g., `patreon.com/yourname`) does **not** contain the campaign ID
+- Most creators only have one campaign, which is auto-discovered automatically
+- Manual entry is only needed if auto-discovery fails
 
 For more details, see [PATREON_API_REFERENCE.md](docs/PATREON_API_REFERENCE.md#how-to-get-your-campaign-id).
 

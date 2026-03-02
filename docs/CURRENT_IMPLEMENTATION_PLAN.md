@@ -18,7 +18,8 @@ discourse-patreon-donations/
 │   │   └── patreon_cache.rb            # Cache model
 │   ├── services/
 │   │   ├── patreon_api_client.rb       # API client wrapper
-│   │   └── patreon_stats_calculator.rb # Stats calculation logic
+│   │   ├── patreon_stats_calculator.rb # Stats calculation logic
+│   │   └── patreon_campaign_discovery.rb # Auto-discover campaign ID
 │   └── jobs/
 │       └── sync_patreon_data.rb        # Background sync job
 ├── assets/
@@ -218,6 +219,53 @@ module Jobs
   end
 end
 ```
+
+### Campaign ID Auto-Discovery
+
+The plugin automatically discovers your campaign ID when you save your Access Token, eliminating manual configuration:
+
+```ruby
+# app/services/patreon_campaign_discovery.rb
+module DiscoursePatreonDonations
+  class PatreonCampaignDiscovery
+    def self.discover_and_save
+      return false unless SiteSetting.patreon_creator_access_token.present?
+
+      client = PatreonApiClient.new
+      campaign_id = client.discover_campaign_id
+
+      if campaign_id.present?
+        SiteSetting.patreon_campaign_id = campaign_id
+        Rails.logger.info("Patreon campaign ID auto-discovered: #{campaign_id}")
+        true
+      else
+        Rails.logger.error("Failed to auto-discover Patreon campaign ID")
+        false
+      end
+    rescue StandardError => e
+      Rails.logger.error("Error discovering campaign ID: #{e.message}")
+      false
+    end
+  end
+end
+```
+
+The auto-discovery is triggered by a site setting change event in `plugin.rb`:
+
+```ruby
+DiscourseEvent.on(:site_setting_changed) do |name, old_value, new_value|
+  if name == :patreon_creator_access_token && new_value.present?
+    DiscoursePatreonDonations::PatreonCampaignDiscovery.discover_and_save
+  end
+end
+```
+
+This feature:
+- Runs automatically when Access Token is saved
+- Fetches the first campaign from the Patreon API
+- Saves the campaign ID to site settings
+- Logs success or failure for debugging
+- Gracefully handles errors without breaking the settings page
 
 ## Testing
 
