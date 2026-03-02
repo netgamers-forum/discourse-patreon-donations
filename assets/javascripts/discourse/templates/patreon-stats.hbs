@@ -24,6 +24,32 @@
         Last updated: {{updatedAt}}
       </p>
     {{/if}}
+
+    {{#if hasMonthlyHistory}}
+      <div class="patreon-monthly-history">
+        <h2>{{i18n "patreon_stats.monthly_history"}}</h2>
+        <div class="monthly-history-table">
+          <table>
+            <thead>
+              <tr>
+                <th>{{i18n "patreon_stats.month"}}</th>
+                <th>{{i18n "patreon_stats.patrons"}}</th>
+                <th>{{i18n "patreon_stats.total_amount"}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each monthlyHistory as |record|}}
+                <tr>
+                  <td>{{record.monthName}} {{record.year}}</td>
+                  <td>{{record.patron_count}}</td>
+                  <td>${{record.formattedAmount}}</td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {{/if}}
   {{else}}
     <div class="patreon-stats-error">
       <p>{{i18n "patreon_stats.error.fetch_failed"}}</p>

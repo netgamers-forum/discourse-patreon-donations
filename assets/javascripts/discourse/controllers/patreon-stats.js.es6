@@ -23,5 +23,27 @@ export default Controller.extend({
   updatedAt: computed("model.stats.updated_at", function() {
     const timestamp = this.get("model.stats.updated_at");
     return timestamp ? new Date(timestamp).toLocaleString() : "";
-  })
+  }),
+
+  hasMonthlyHistory: computed("model.monthly_history", function() {
+    const history = this.get("model.monthly_history");
+    return history && history.length > 0;
+  }),
+
+  monthlyHistory: computed("model.monthly_history", function() {
+    const history = this.get("model.monthly_history") || [];
+    return history.map(item => ({
+      ...item,
+      monthName: this.getMonthName(item.month),
+      formattedAmount: item.total_amount.toFixed(2)
+    }));
+  }),
+
+  getMonthName(monthNumber) {
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return months[monthNumber - 1] || "";
+  }
 });

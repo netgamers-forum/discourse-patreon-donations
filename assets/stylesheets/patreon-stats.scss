@@ -61,3 +61,62 @@
   border-radius: 8px;
   color: var(--danger);
 }
+
+.patreon-monthly-history {
+  margin-top: 3rem;
+
+  h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    color: var(--primary);
+  }
+
+  .monthly-history-table {
+    background: var(--primary-very-low);
+    border: 1px solid var(--primary-low);
+    border-radius: 8px;
+    overflow: hidden;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      thead {
+        background: var(--primary-low);
+
+        th {
+          padding: 1rem;
+          text-align: left;
+          font-weight: 600;
+          color: var(--primary);
+          border-bottom: 2px solid var(--primary-medium);
+        }
+      }
+
+      tbody {
+        tr {
+          border-bottom: 1px solid var(--primary-low);
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          &:hover {
+            background: var(--highlight-low);
+          }
+
+          td {
+            padding: 1rem;
+            color: var(--primary);
+
+            &:nth-child(2),
+            &:nth-child(3) {
+              text-align: right;
+              font-weight: 500;
+            }
+          }
+        }
+      }
+    }
+  }
+}
