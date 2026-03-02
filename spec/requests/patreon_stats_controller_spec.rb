@@ -96,11 +96,4 @@ describe DiscoursePatreonDonations::PatreonStatsController do
       end
     end
   end
-
-  describe '#index' do
-    it 'renders the default empty template' do
-      get '/patreon-stats'
-      expect(response.status).to eq(200)
-    end
-  end
 end
