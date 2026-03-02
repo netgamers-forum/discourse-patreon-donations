@@ -122,7 +122,8 @@ module DiscoursePatreonDonations
 
     def handle_response(response)
       case response.code.to_i
-      whRails.logger.info("Patreon API: Success (200)")
+      when 200
+        Rails.logger.info("Patreon API: Success (200)")
         JSON.parse(response.body)
       when 401
         Rails.logger.error("Patreon API: Unauthorized (401) - Invalid or expired access token")
@@ -134,8 +135,7 @@ module DiscoursePatreonDonations
       when 403
         Rails.logger.error("Patreon API: Forbidden (403) - Token may be missing required scopes")
         Rails.logger.error("  Required scopes: 'campaigns' and 'campaigns.members'")
-        Rails.logger.error("  Response: #{response.body[0..200]}") if response.bodyired scopes")
-        Rails.logger.error("  Required scopes: 'campaigns' and 'campaigns.members'")
+        Rails.logger.error("  Response: #{response.body[0..200]}") if response.body
         nil
       when 429
         Rails.logger.warn("Patreon API: Rate limited (429) - retry after #{response['Retry-After']} seconds")
