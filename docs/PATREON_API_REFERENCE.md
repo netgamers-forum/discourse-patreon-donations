@@ -1,10 +1,24 @@
 # Patreon API Reference
 
-This document outlines the Patreon API v2 endpoints used by this plugin.
+This document outlines the Patreon API endpoints used by this plugin.
 
 ## API Version
 
-**Use API v2** - API v1 is deprecated and will be removed soon.
+The plugin supports both **v1** and **v2** API endpoints:
+
+- **v2 (Recommended)**: The current and actively maintained API version
+  - Base URL: `https://www.patreon.com/api/oauth2/v2`
+  - Full JSON:API spec compliance
+  - Better documentation and support
+  
+- **v1 (Legacy)**: Older API version, use only if you have a v1 OAuth client
+  - Base URL: `https://www.patreon.com/api/oauth2/api`  
+  - Compatible with older OAuth clients
+  - May have limited future support
+
+**Configuration**: Set the API version in plugin settings (`patreon_donations_api_version`). The plugin will automatically use the correct base URL and handle any differences between the versions.
+
+**Note**: API v1 may be deprecated in the future. We recommend using v2 for new integrations.
 
 ## Authentication
 
