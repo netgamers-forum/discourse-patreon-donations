@@ -14,9 +14,13 @@ module DiscoursePatreonDonations
       end
 
       stats = fetch_cached_stats
+      monthly_history = fetch_monthly_history
 
       if stats
-        render json: { stats: stats }
+        render json: { 
+          stats: stats,
+          monthly_history: monthly_history
+        }
       else
         render_json_error(I18n.t('patreon_stats.error.fetch_failed'), status: 503)
       end
@@ -31,6 +35,17 @@ module DiscoursePatreonDonations
     rescue StandardError => e
       Rails.logger.error("Error fetching Patreon stats: #{e.message}")
       nil
+    end
+
+    def fetch_monthly_history
+      return [] unless SiteSetting.patreon_campaign_id.present?
+
+      PatreonMonthlyStat
+        .last_12_months(SiteSetting.patreon_campaign_id)
+        .map(&:to_h)
+    rescue StandardError => e
+      Rails.logger.error("Error fetching monthly history: #{e.message}")
+      []
     end
 
     def calculate_fresh_stats
