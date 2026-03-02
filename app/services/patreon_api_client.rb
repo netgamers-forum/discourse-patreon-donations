@@ -5,8 +5,13 @@ module DiscoursePatreonDonations
     BASE_URL = 'https://www.patreon.com/api/oauth2/v2'
     
     def initialize(access_token: nil, campaign_id: nil)
-      @access_token = access_token || SiteSetting.patreon_donations_creator_access_token
-      @campaign_id = campaign_id || SiteSetting.patreon_donations_campaign_id
+    @access_token = (access_token || SiteSetting.patreon_donations_creator_access_token).to_s.strip
+    @campaign_id = (campaign_id || SiteSetting.patreon_donations_campaign_id).to_s.strip
+    
+    if @access_token.blank?
+      Rails.logger.error("Patreon API: No access token configured!")
+    else
+      Rails.logger.info("Patreon API: Using access token (length: #{@access_token.length})")
     end
 
     def fetch_campaign_data
@@ -104,6 +109,7 @@ module DiscoursePatreonDonations
     def build_uri(endpoint, params)
       uri = URI("#{BASE_URL}#{endpoint}")
       uri.query = URI.encode_www_form(params) unless params.empty?
+      Rails.logger.info("Patreon API: Requesting #{uri}")
       uri
     end
 
@@ -116,14 +122,19 @@ module DiscoursePatreonDonations
 
     def handle_response(response)
       case response.code.to_i
-      when 200
+      whRails.logger.info("Patreon API: Success (200)")
         JSON.parse(response.body)
       when 401
         Rails.logger.error("Patreon API: Unauthorized (401) - Invalid or expired access token")
+        Rails.logger.error("  Token length: #{@access_token&.length || 0} characters")
+        Rails.logger.error("  Token starts with: #{@access_token[0..10]}..." if @access_token)
         Rails.logger.error("  Please check your Creator Access Token in plugin settings")
+        Rails.logger.error("  Response: #{response.body[0..200]}") if response.body
         nil
       when 403
         Rails.logger.error("Patreon API: Forbidden (403) - Token may be missing required scopes")
+        Rails.logger.error("  Required scopes: 'campaigns' and 'campaigns.members'")
+        Rails.logger.error("  Response: #{response.body[0..200]}") if response.bodyired scopes")
         Rails.logger.error("  Required scopes: 'campaigns' and 'campaigns.members'")
         nil
       when 429
