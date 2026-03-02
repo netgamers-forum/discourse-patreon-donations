@@ -1,6 +1,11 @@
 <div class="patreon-stats-page">
   <h1>Patreon Campaign Statistics</h1>
   
+  {{! Debug output - remove after testing }}
+  <pre>Model: {{json-stringify model}}</pre>
+  <pre>Has error: {{model.error}}</pre>
+  <pre>Has stats: {{model.stats}}</pre>
+  
   {{#if model.error}}
     <div class="patreon-stats-error">
       <p class="error-message">⚠️ {{model.message}}</p>
