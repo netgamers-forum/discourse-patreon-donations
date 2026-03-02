@@ -1,0 +1,50 @@
+.patreon-donations-admin {
+  .admin-container {
+    max-width: 800px;
+  }
+
+  .admin-section {
+    background: var(--primary-very-low);
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+
+    h3 {
+      margin-top: 0;
+      color: var(--primary);
+    }
+
+    p {
+      color: var(--primary-medium);
+      margin-bottom: 15px;
+    }
+
+    .buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .spinner {
+        margin-left: 10px;
+      }
+    }
+
+    .alert {
+      margin-top: 15px;
+      padding: 10px 15px;
+      border-radius: 4px;
+
+      &.alert-success {
+        background: var(--success-low);
+        color: var(--success);
+        border: 1px solid var(--success);
+      }
+
+      &.alert-error {
+        background: var(--danger-low);
+        color: var(--danger);
+        border: 1px solid var(--danger);
+      }
+    }
+  }
+}

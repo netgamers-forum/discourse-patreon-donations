@@ -9,6 +9,7 @@
 enabled_site_setting :patreon_donations_enabled
 
 register_asset 'stylesheets/patreon-stats.scss'
+register_asset 'stylesheets/admin-patreon-donations.scss', :admin
 
 after_initialize do
   module ::DiscoursePatreonDonations
@@ -21,12 +22,24 @@ after_initialize do
   require_relative 'app/services/patreon_stats_calculator'
   require_relative 'app/services/patreon_campaign_discovery'
   require_relative 'app/controllers/patreon_stats_controller'
+  require_relative 'app/controllers/admin/patreon_donations_controller'
   require_relative 'app/jobs/sync_patreon_data'
 
   Discourse::Application.routes.append do
     get '/patreon-stats' => 'patreon_stats#show'
     get '/patreon-stats.json' => 'patreon_stats#show', defaults: { format: :json }
   end
+
+  Discourse::Application.routes.append do
+    namespace :admin, constraints: StaffConstraint.new do
+      namespace :plugins do
+        get 'patreon-donations' => 'patreon_donations/admin/patreon_donations#index'
+        post 'patreon-donations/backfill' => 'patreon_donations/admin/patreon_donations#backfill_history'
+      end
+    end
+  end
+
+  add_admin_route 'patreon_donations.admin.title', 'patreon-donations'
 
   DiscourseEvent.on(:site_setting_changed) do |name, old_value, new_value|
     if name == :patreon_donations_campaign_url && new_value.present?

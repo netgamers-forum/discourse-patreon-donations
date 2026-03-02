@@ -1,0 +1,35 @@
+<div class="patreon-donations-admin">
+  <h2>{{i18n "patreon_donations.admin.title"}}</h2>
+  
+  <div class="admin-container">
+    <div class="admin-section">
+      <h3>{{i18n "patreon_donations.admin.history.title"}}</h3>
+      <p>{{i18n "patreon_donations.admin.history.description"}}</p>
+      
+      <div class="buttons">
+        {{d-button
+          action=(action "backfillHistory")
+          label="patreon_donations.admin.history.backfill_button"
+          icon="history"
+          class="btn-primary"
+          disabled=isBackfilling}}
+        
+        {{#if isBackfilling}}
+          <span class="spinner small"></span>
+        {{/if}}
+      </div>
+      
+      {{#if backfillMessage}}
+        <div class="alert alert-success">
+          {{backfillMessage}}
+        </div>
+      {{/if}}
+      
+      {{#if backfillError}}
+        <div class="alert alert-error">
+          {{backfillError}}
+        </div>
+      {{/if}}
+    </div>
+  </div>
+</div>
