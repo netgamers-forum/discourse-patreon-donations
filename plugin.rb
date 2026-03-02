@@ -29,7 +29,7 @@ after_initialize do
   end
 
   DiscourseEvent.on(:site_setting_changed) do |name, old_value, new_value|
-    if name == :patreon_creator_access_token && new_value.present?
+    if name == :patreon_campaign_url && new_value.present?
       DiscoursePatreonDonations::PatreonCampaignDiscovery.discover_and_save
     end
   end

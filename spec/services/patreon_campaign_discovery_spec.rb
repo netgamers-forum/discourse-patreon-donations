@@ -8,6 +8,7 @@ describe DiscoursePatreonDonations::PatreonCampaignDiscovery do
   before do
     SiteSetting.patreon_enabled = true
     SiteSetting.patreon_creator_access_token = 'test_token_123'
+    SiteSetting.patreon_campaign_url = 'patreon.com/testcampaign'
   end
 
   describe '.discover_and_save' do
@@ -19,7 +20,7 @@ describe DiscoursePatreonDonations::PatreonCampaignDiscovery do
 
     context 'when campaign ID is successfully discovered' do
       before do
-        allow(mock_client).to receive(:discover_campaign_id).and_return('9070965')
+        allow(mock_client).to receive(:discover_campaign_id).with('patreon.com/testcampaign').and_return('9070965')
       end
 
       it 'saves the campaign ID to settings' do
@@ -39,7 +40,7 @@ describe DiscoursePatreonDonations::PatreonCampaignDiscovery do
 
     context 'when campaign ID discovery returns nil' do
       before do
-        allow(mock_client).to receive(:discover_campaign_id).and_return(nil)
+        allow(mock_client).to receive(:discover_campaign_id).with('patreon.com/testcampaign').and_return(nil)
       end
 
       it 'does not update settings' do
@@ -52,15 +53,15 @@ describe DiscoursePatreonDonations::PatreonCampaignDiscovery do
         expect(described_class.discover_and_save).to be false
       end
 
-      it 'logs error message' do
-        Rails.logger.expects(:error).with(includes('Failed'))
+      it 'logs error message with URL' do
+        Rails.logger.expects(:error).with(includes('Failed')).with(includes('patreon.com/testcampaign'))
         described_class.discover_and_save
       end
     end
 
-    context 'when access token is not present' do
+    context 'when campaign URL is not present' do
       before do
-        SiteSetting.patreon_creator_access_token = ''
+        SiteSetting.patreon_campaign_url = ''
       end
 
       it 'returns false without calling API' do
@@ -71,7 +72,7 @@ describe DiscoursePatreonDonations::PatreonCampaignDiscovery do
 
     context 'when API client raises an error' do
       before do
-        allow(mock_client).to receive(:discover_campaign_id).and_raise(StandardError.new('API Error'))
+        allow(mock_client).to receive(:discover_campaign_id).with('patreon.com/testcampaign').and_raise(StandardError.new('API Error'))
       end
 
       it 'returns false' do

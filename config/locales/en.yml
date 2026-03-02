@@ -3,9 +3,10 @@ en:
     patreon_enabled: "Enable Patreon integration"
     patreon_client_id: "Patreon OAuth Client ID"
     patreon_client_secret: "Patreon OAuth Client Secret"
-    patreon_creator_access_token: "Patreon Creator Access Token (Campaign ID will be auto-discovered when saved)"
+    patreon_creator_access_token: "Patreon Creator Access Token"
     patreon_creator_refresh_token: "Patreon Creator Refresh Token"
-    patreon_campaign_id: "Patreon Campaign ID (automatically discovered, or enter manually)"
+    patreon_campaign_url: "Patreon Campaign URL (e.g., patreon.com/yourcampaign)"
+    patreon_campaign_id: "Patreon Campaign ID (automatically discovered from URL)"
     patreon_cache_duration: "Cache duration for Patreon stats (minutes)"
     patreon_sync_frequency: "Background sync frequency (hours)"
 
@@ -13,7 +14,7 @@ en:
     admin:
       site_settings:
         categories:
-          patreon: "Patreon"
+          patreon: "Patreon Campaign Integration"
   
   patreon_stats:
     title: "Patreon Campaign Statistics"

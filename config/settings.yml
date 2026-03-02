@@ -14,6 +14,9 @@ patreon:
   patreon_creator_refresh_token:
     default: ''
     secret: true
+  patreon_campaign_url:
+    default: ''
+    client: true
   patreon_campaign_id:
     default: ''
     hidden: true

@@ -17,9 +17,26 @@ module DiscoursePatreonDonations
       response&.dig('data', 0)
     end
 
-    def discover_campaign_id
-      campaign_data = fetch_campaign_data
-      campaign_data&.dig('id')
+    def discover_campaign_id(campaign_url)
+      return nil if campaign_url.blank?
+
+      vanity_name = extract_vanity_name(campaign_url)
+      return nil if vanity_name.blank?
+
+      campaigns = fetch_all_campaigns
+      matching_campaign = campaigns.find do |campaign|
+        campaign.dig('attributes', 'vanity') == vanity_name
+      end
+
+      matching_campaign&.dig('id')
+    end
+
+    def fetch_all_campaigns
+      endpoint = '/campaigns'
+      params = { 'fields[campaign]' => 'vanity,patron_count,is_monthly,creation_name' }
+      
+      response = make_request(endpoint, params)
+      response&.dig('data') || []
     end
 
     def fetch_members
@@ -87,6 +104,19 @@ module DiscoursePatreonDonations
       else
         Rails.logger.error("Patreon API error: HTTP #{response.code}")
         nil
+      end
+    end
+
+    def extract_vanity_name(url)
+      # Strip protocol and www if present
+      cleaned_url = url.gsub(%r{^https?://(www\.)?}, '')
+      
+      # Extract vanity name from patreon.com/vanity_name format
+      if cleaned_url.match?(%r{^patreon\.com/([^/\?]+)})
+        cleaned_url.match(%r{^patreon\.com/([^/\?]+)})[1]
+      else
+        # If just the vanity name is provided
+        cleaned_url.split('/').first
       end
     end
 
