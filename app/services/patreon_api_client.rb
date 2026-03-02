@@ -112,6 +112,16 @@ module DiscoursePatreonDonations
       campaigns = response&.dig('data') || []
       campaign = campaigns.first
       
+      # Auto-populate campaign_id if empty (V1 discovers it from the API)
+      if campaign && @campaign_id.blank?
+        discovered_id = campaign['id']
+        if discovered_id.present?
+          Rails.logger.info("V1 API - Auto-discovered campaign_id: #{discovered_id}")
+          SiteSetting.patreon_donations_campaign_id = discovered_id
+          @campaign_id = discovered_id
+        end
+      end
+      
       Rails.logger.info("V1 API - Campaign attributes: #{campaign&.dig('attributes')&.keys&.join(', ')}")
       campaign
     end

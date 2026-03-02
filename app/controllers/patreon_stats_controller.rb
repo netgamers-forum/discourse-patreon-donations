@@ -76,7 +76,8 @@ class PatreonStatsController < ::ApplicationController
   end
 
   def cache_key
-    "patreon_stats:#{SiteSetting.patreon_donations_campaign_id}"
+    campaign_id = SiteSetting.patreon_donations_campaign_id.presence || "default"
+    "patreon_stats:#{campaign_id}"
   end
 
   def cache_duration
