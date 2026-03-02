@@ -7,6 +7,7 @@ en:
   
   site_settings:
     patreon_donations_enabled: "Enable Patreon Donations plugin"
+    patreon_donations_api_version: "Patreon API version (v1 for legacy OAuth clients, v2 recommended)"
     patreon_donations_client_id: "Patreon OAuth Client ID"
     patreon_donations_client_secret: "Patreon OAuth Client Secret"
     patreon_donations_creator_access_token: "Patreon Creator Access Token"

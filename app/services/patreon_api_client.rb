@@ -2,16 +2,19 @@
 
 module DiscoursePatreonDonations
   class PatreonApiClient
-    BASE_URL = 'https://www.patreon.com/api/oauth2/api'
+    BASE_URL_V1 = 'https://www.patreon.com/api/oauth2/api'
+    BASE_URL_V2 = 'https://www.patreon.com/api/oauth2/v2'
     
     def initialize(access_token: nil, campaign_id: nil)
       @access_token = (access_token || SiteSetting.patreon_donations_creator_access_token).to_s.strip
       @campaign_id = (campaign_id || SiteSetting.patreon_donations_campaign_id).to_s.strip
+      @api_version = SiteSetting.patreon_donations_api_version || 'v2'
       
       if @access_token.blank?
         Rails.logger.error("Patreon API: No access token configured!")
       else
         Rails.logger.info("Patreon API: Using access token (length: #{@access_token.length})")
+        Rails.logger.info("Patreon API: Using API version #{@api_version}")
       end
     end
 
@@ -108,7 +111,8 @@ module DiscoursePatreonDonations
     end
 
     def build_uri(endpoint, params)
-      uri = URI("#{BASE_URL}#{endpoint}")
+      base_url = @api_version == 'v1' ? BASE_URL_V1 : BASE_URL_V2
+      uri = URI("#{base_url}#{endpoint}")
       uri.query = URI.encode_www_form(params) unless params.empty?
       Rails.logger.info("Patreon API: Requesting #{uri}")
       uri
