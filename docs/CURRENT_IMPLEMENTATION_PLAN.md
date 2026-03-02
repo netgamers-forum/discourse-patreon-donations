@@ -502,16 +502,28 @@ Now that the initial plugin structure is complete, the following steps remain:
 
 ### 1. Add Database Migration ✓ COMPLETED
 
-The migration file for the `patreon_cache` table has been created:
+A single consolidated migration creates both required tables:
 
-**File**: `db/migrate/20260302000001_create_patreon_cache.rb`
+**File**: `db/migrate/20260302000001_create_patreon_tables.rb`
 
-**Schema**:
+**Tables Created**:
+
+#### patreon_cache - Current Statistics Cache
 - `campaign_id` (string, not null) - Patreon campaign identifier
-- `data` (text, not null) - JSON-serialized stats data
+- `data` (text, not null) - JSON-serialized current stats data
 - `last_synced_at` (datetime) - Timestamp of last sync
 - `created_at`, `updated_at` (timestamps) - Rails standard timestamps
 - Unique index on `campaign_id`
+
+#### patreon_monthly_stats - Historical Monthly Data
+- `campaign_id` (string, not null) - Patreon campaign identifier
+- `year` (integer, not null) - Year of the snapshot
+- `month` (integer, not null) - Month of the snapshot (1-12)
+- `patron_count` (integer, not null) - Number of patrons that month
+- `total_amount_cents` (integer, not null) - Total monthly pledges in cents
+- `created_at`, `updated_at` (timestamps) - Rails standard timestamps
+- Unique index on `(campaign_id, year, month)` - Prevents duplicate monthly records
+- Index on `campaign_id` for efficient queries
 
 **Running the migration in Discourse**:
 
@@ -529,30 +541,17 @@ For development environments:
 bundle exec rake db:migrate
 ```
 
-To verify the migration ran successfully:
+To verify the migrations ran successfully:
 
 ```bash
 # Rails console
 rails c
-# Check if table exists
+# Check if tables exist
 ActiveRecord::Base.connection.table_exists?(:patreon_cache)
 # => true
+ActiveRecord::Base.connection.table_exists?(:patreon_monthly_stats)
+# => true
 ```
-
-**Monthly Statistics Tracking**: ✓ ADDED
-
-An additional migration was added to track historical monthly data:
-
-**File**: `db/migrate/20260302000002_create_patreon_monthly_stats.rb`
-
-**Schema**:
-- `campaign_id` (string, not null) - Patreon campaign identifier
-- `year` (integer, not null) - Year of the snapshot
-- `month` (integer, not null) - Month of the snapshot (1-12)
-- `patron_count` (integer, not null) - Number of patrons that month
-- `total_amount_cents` (integer, not null) - Total monthly pledges in cents
-- `created_at`, `updated_at` (timestamps) - Rails standard timestamps
-- Unique index on `(campaign_id, year, month)` - Prevents duplicate monthly records
 
 **Features**:
 - Automatically records monthly snapshots during sync job
