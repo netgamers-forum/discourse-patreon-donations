@@ -5,15 +5,15 @@ module DiscoursePatreonDonations
     BASE_URL = 'https://www.patreon.com/api/oauth2/v2'
     
     def initialize(access_token: nil, campaign_id: nil)
-    @access_token = (access_token || SiteSetting.patreon_donations_creator_access_token).to_s.strip
-    @campaign_id = (campaign_id || SiteSetting.patreon_donations_campaign_id).to_s.strip
-    
-    if @access_token.blank?
-      Rails.logger.error("Patreon API: No access token configured!")
-    else
-      Rails.logger.info("Patreon API: Using access token (length: #{@access_token.length})")
+      @access_token = (access_token || SiteSetting.patreon_donations_creator_access_token).to_s.strip
+      @campaign_id = (campaign_id || SiteSetting.patreon_donations_campaign_id).to_s.strip
+      
+      if @access_token.blank?
+        Rails.logger.error("Patreon API: No access token configured!")
+      else
+        Rails.logger.info("Patreon API: Using access token (length: #{@access_token.length})")
+      end
     end
-  end
 
     def fetch_campaign_data
       endpoint = '/campaigns'
