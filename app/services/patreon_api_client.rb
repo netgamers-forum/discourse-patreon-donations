@@ -100,8 +100,9 @@ module DiscoursePatreonDonations
 
     # V1 API methods
     def fetch_campaign_data_v1
+      # V1 API uses include parameter to get related data in one request
       endpoint = '/current_user/campaigns'
-      params = {}
+      params = { 'include' => 'pledges' }
       
       response = make_request(endpoint, params)
       # V1 returns campaigns in 'data' array
@@ -118,26 +119,50 @@ module DiscoursePatreonDonations
     end
 
     def fetch_members_v1
-      all_members = []
-      cursor = nil
-
-      loop do
-        # V1 uses 'pledges' endpoint instead of 'members'
-        endpoint = "/campaigns/#{@campaign_id}/pledges"
-        params = {
-          'page[count]' => '1000'
-        }
-        params['page[cursor]'] = cursor if cursor
-
-        response = make_request(endpoint, params)
-        break unless response
-
-        all_members.concat(response['data'] || [])
-        cursor = response.dig('meta', 'pagination', 'cursors', 'next')
-        break unless cursor
+      # V1 API doesn't have a separate members endpoint
+      # Instead, we get pledges via the campaign endpoint with includes
+      endpoint = '/current_user/campaigns'
+      params = { 
+        'include' => 'pledges',
+        'page[count]' => '100'
+      }
+      
+      response = make_request(endpoint, params)
+      return [] unless response
+      
+      # Extract pledges from included array
+      pledges = []
+      if response['included']
+        response['included'].each do |item|
+          pledges << item if item['type'] == 'pledge'
+        end
       end
-
-      all_members
+      
+      # V1 pledges need to be converted to v2 member format for compatibility
+      convert_pledges_to_members(pledges)
+    end
+    
+    def convert_pledges_to_members(pledges)
+      pledges.map do |pledge|
+        {
+          'id' => pledge['id'],
+          'type' => 'member',
+          'attributes' => {
+            'currently_entitled_amount_cents' => pledge.dig('attributes', 'amount_cents') || 0,
+            'patron_status' => pledge_status_to_patron_status(pledge),
+            'last_charge_date' => pledge.dig('attributes', 'created_at'),
+            'last_charge_status' => pledge.dig('attributes', 'declined_since') ? 'Declined' : 'Paid'
+          }
+        }
+      end
+    end
+    
+    def pledge_status_to_patron_status(pledge)
+      if pledge.dig('attributes', 'declined_since')
+        'declined_patron'
+      else
+        'active_patron'
+      end
     end
 
     def make_request(endpoint, params = {})
