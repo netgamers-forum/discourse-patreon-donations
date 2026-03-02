@@ -2,7 +2,7 @@
 
 module DiscoursePatreonDonations
   class PatreonApiClient
-    BASE_URL_V1 = 'https://www.patreon.com/api/oauth2/api'
+    BASE_URL_V1 = 'https://api.patreon.com/oauth2/api'
     BASE_URL_V2 = 'https://www.patreon.com/api/oauth2/v2'
     
     def initialize(access_token: nil, campaign_id: nil)
