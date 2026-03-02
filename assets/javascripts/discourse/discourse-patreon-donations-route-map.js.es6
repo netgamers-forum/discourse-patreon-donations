@@ -1,7 +1,3 @@
-export default {
-  resource: "patreon",
-  path: "/patreon-stats",
-  map() {
-    this.route("stats");
-  },
-};
+export default function () {
+  this.route("patreon-stats");
+}
