@@ -9,16 +9,19 @@ This plugin adds a new read-only page to your Discourse forum (similar to the "A
 1. **Number of Active Subscribers** - Total count of current Patreon patrons
 2. **Estimated Monthly Revenue** - Projected monthly income from all active pledges
 3. **Last Month Total Donations** - Actual donations received in the previous calendar month
+4. **12-Month Historical Data** - Monthly breakdown of patron count and total donations for trend analysis and charting
 
 The page is **non-interactive** and serves purely as an informational dashboard to showcase community support and transparency around funding.
 
 ## Features
 
 - **Real-time Statistics**: Syncs with Patreon API daily
+- **Historical Tracking**: Automatically stores last 12 months of donation data
+- **Monthly Snapshots**: Records patron count and total amounts each month
 - **Discourse Native UI**: Matches your forum's theme and styling
 - **Secure**: OAuth 2.0 authentication with encrypted credential storage
 - **Performant**: Implements caching to minimize API calls
-- **Responsive**: Mobile-friendly display
+- **Responsive**: Mobile-friendly display with sortable history table
 - **Automatic Updates**: Background job refreshes data daily
 
 ## Use Cases

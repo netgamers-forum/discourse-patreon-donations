@@ -539,6 +539,32 @@ ActiveRecord::Base.connection.table_exists?(:patreon_cache)
 # => true
 ```
 
+**Monthly Statistics Tracking**: ✓ ADDED
+
+An additional migration was added to track historical monthly data:
+
+**File**: `db/migrate/20260302000002_create_patreon_monthly_stats.rb`
+
+**Schema**:
+- `campaign_id` (string, not null) - Patreon campaign identifier
+- `year` (integer, not null) - Year of the snapshot
+- `month` (integer, not null) - Month of the snapshot (1-12)
+- `patron_count` (integer, not null) - Number of patrons that month
+- `total_amount_cents` (integer, not null) - Total monthly pledges in cents
+- `created_at`, `updated_at` (timestamps) - Rails standard timestamps
+- Unique index on `(campaign_id, year, month)` - Prevents duplicate monthly records
+
+**Features**:
+- Automatically records monthly snapshots during sync job
+- Stores last 12 months of data (older records auto-deleted)
+- Provides historical data for trend analysis and charting
+- Accessible via `/patreon-stats.json` API endpoint
+
+**Model**: `PatreonMonthlyStat` provides methods:
+- `record_monthly_snapshot(campaign_id, patron_count, total_amount_cents, date)` - Create or update monthly record
+- `last_12_months(campaign_id)` - Retrieve 12 most recent months
+- `cleanup_old_records(campaign_id, keep_months)` - Remove old data beyond retention period
+
 ### 2. Write Tests
 
 Write comprehensive tests for services and controllers:
