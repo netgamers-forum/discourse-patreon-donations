@@ -500,24 +500,43 @@ Each commit is small, focused, and can be reviewed independently.
 
 Now that the initial plugin structure is complete, the following steps remain:
 
-### 1. Add Database Migration
+### 1. Add Database Migration ✓ COMPLETED
 
-Create a migration file for the `patreon_cache` table:
+The migration file for the `patreon_cache` table has been created:
 
-```ruby
-# db/migrate/20260302000001_create_patreon_cache.rb
-class CreatePatreonCache < ActiveRecord::Migration[7.0]
-  def change
-    create_table :patreon_cache do |t|
-      t.string :campaign_id, null: false
-      t.text :data, null: false
-      t.datetime :last_synced_at
-      t.timestamps
-    end
+**File**: `db/migrate/20260302000001_create_patreon_cache.rb`
 
-    add_index :patreon_cache, :campaign_id, unique: true
-  end
-end
+**Schema**:
+- `campaign_id` (string, not null) - Patreon campaign identifier
+- `data` (text, not null) - JSON-serialized stats data
+- `last_synced_at` (datetime) - Timestamp of last sync
+- `created_at`, `updated_at` (timestamps) - Rails standard timestamps
+- Unique index on `campaign_id`
+
+**Running the migration in Discourse**:
+
+When you install or update the plugin, Discourse will automatically run pending migrations during the rebuild process:
+
+```bash
+cd /var/discourse
+./launcher rebuild app
+```
+
+For development environments:
+
+```bash
+# From Discourse root directory
+bundle exec rake db:migrate
+```
+
+To verify the migration ran successfully:
+
+```bash
+# Rails console
+rails c
+# Check if table exists
+ActiveRecord::Base.connection.table_exists?(:patreon_cache)
+# => true
 ```
 
 ### 2. Write Tests
