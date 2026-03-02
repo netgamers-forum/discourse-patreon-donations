@@ -2,9 +2,13 @@
   <h1>Patreon Campaign Statistics</h1>
   
   {{! Debug output - remove after testing }}
-  <pre>Model: {{json-stringify model}}</pre>
-  <pre>Has error: {{model.error}}</pre>
-  <pre>Has stats: {{model.stats}}</pre>
+  <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc;">
+    <strong>Debug Info:</strong><br>
+    model.error = {{model.error}}<br>
+    model.stats exists = {{if model.stats "YES" "NO"}}<br>
+    model.stats.patron_count = {{model.stats.patron_count}}<br>
+    model.monthly_history exists = {{if model.monthly_history "YES" "NO"}}<br>
+  </div>
   
   {{#if model.error}}
     <div class="patreon-stats-error">
