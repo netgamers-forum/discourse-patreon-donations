@@ -1,7 +1,18 @@
 # frozen_string_literal: true
 
-class CreatePatreonMonthlyStats < ActiveRecord::Migration[7.0]
+class CreatePatreonTables < ActiveRecord::Migration[7.0]
   def change
+    # Cache table for current stats
+    create_table :patreon_cache do |t|
+      t.string :campaign_id, null: false
+      t.text :data, null: false
+      t.datetime :last_synced_at
+      t.timestamps
+    end
+
+    add_index :patreon_cache, :campaign_id, unique: true
+
+    # Monthly statistics table for historical tracking
     create_table :patreon_monthly_stats do |t|
       t.string :campaign_id, null: false
       t.integer :year, null: false
