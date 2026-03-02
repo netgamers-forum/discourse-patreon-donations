@@ -1,0 +1,32 @@
+<div class="patreon-stats-page">
+  <h1>{{i18n "patreon_stats.title"}}</h1>
+
+  {{#if hasStats}}
+    <div class="patreon-stats-container">
+      <div class="stat-card">
+        <h3>{{i18n "patreon_stats.active_subscribers"}}</h3>
+        <p class="stat-value">{{patronCount}}</p>
+      </div>
+
+      <div class="stat-card">
+        <h3>{{i18n "patreon_stats.monthly_estimate"}}</h3>
+        <p class="stat-value">${{monthlyEstimate}}</p>
+      </div>
+
+      <div class="stat-card">
+        <h3>{{i18n "patreon_stats.last_month_total"}}</h3>
+        <p class="stat-value">${{lastMonthTotal}}</p>
+      </div>
+    </div>
+
+    {{#if updatedAt}}
+      <p class="patreon-stats-updated">
+        Last updated: {{updatedAt}}
+      </p>
+    {{/if}}
+  {{else}}
+    <div class="patreon-stats-error">
+      <p>{{i18n "patreon_stats.error.fetch_failed"}}</p>
+    </div>
+  {{/if}}
+</div>

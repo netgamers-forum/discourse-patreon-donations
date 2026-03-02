@@ -1,0 +1,63 @@
+.patreon-stats-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  h1 {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+}
+
+.patreon-stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--primary-very-low);
+  border: 1px solid var(--primary-low);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  h3 {
+    margin: 0 0 1rem 0;
+    color: var(--primary-medium);
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-value {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+}
+
+.patreon-stats-updated {
+  text-align: center;
+  color: var(--primary-medium);
+  font-size: 0.875rem;
+  margin-top: 2rem;
+}
+
+.patreon-stats-error {
+  text-align: center;
+  padding: 3rem;
+  background: var(--danger-low);
+  border: 1px solid var(--danger-medium);
+  border-radius: 8px;
+  color: var(--danger);
+}
