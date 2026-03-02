@@ -128,7 +128,7 @@ module DiscoursePatreonDonations
       when 401
         Rails.logger.error("Patreon API: Unauthorized (401) - Invalid or expired access token")
         Rails.logger.error("  Token length: #{@access_token&.length || 0} characters")
-        Rails.logger.error("  Token starts with: #{@access_token[0..10]}..." if @access_token)
+        Rails.logger.error("  Token starts with: #{@access_token[0..10]}...") if @access_token
         Rails.logger.error("  Please check your Creator Access Token in plugin settings")
         Rails.logger.error("  Response: #{response.body[0..200]}") if response.body
         nil
