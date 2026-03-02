@@ -13,6 +13,7 @@ en:
     patreon_sync_frequency: "Background sync frequency (hours)"
   
   patreon_stats:
+    title: "Patreon Campaign Statistics"
     error:
       fetch_failed: "Unable to fetch Patreon statistics. Please try again later."
       not_configured: "Patreon integration is not properly configured. Please contact an administrator."

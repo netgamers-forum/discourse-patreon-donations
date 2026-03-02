@@ -4,7 +4,7 @@ class PatreonStatsController < ::ApplicationController
   requires_plugin 'discourse-patreon-donations'
 
   def index
-    render 'default/empty'
+    # Render the patreon stats page
   end
 
     def show
