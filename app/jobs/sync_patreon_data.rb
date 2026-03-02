@@ -42,6 +42,7 @@ module ::Jobs
       }
 
       cache_stats(stats)
+      record_monthly_snapshot(stats)
       update_sync_time
     end
 
@@ -51,6 +52,28 @@ module ::Jobs
         stats,
         expires_in: SiteSetting.patreon_cache_duration.minutes
       )
+    end
+
+    def record_monthly_snapshot(stats)
+      campaign_id = SiteSetting.patreon_campaign_id
+      return unless campaign_id.present?
+
+      now = Time.now.utc
+      last_snapshot = DiscoursePatreonDonations::PatreonMonthlyStat
+        .where(campaign_id: campaign_id, year: now.year, month: now.month)
+        .first
+
+      # Only record once per month, or update if already exists
+      total_amount_cents = (stats[:monthly_estimate] * 100).to_i
+      
+      DiscoursePatreonDonations::PatreonMonthlyStat.record_monthly_snapshot(
+        campaign_id,
+        stats[:patron_count],
+        total_amount_cents,
+        now
+      )
+      
+      Rails.logger.info("Recorded monthly snapshot for campaign #{campaign_id}: #{stats[:patron_count]} patrons, $#{stats[:monthly_estimate]}")
     end
 
     def last_sync_time

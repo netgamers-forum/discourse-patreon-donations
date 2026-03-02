@@ -16,6 +16,7 @@ after_initialize do
   end
 
   require_relative 'app/models/patreon_cache'
+  require_relative 'app/models/patreon_monthly_stat'
   require_relative 'app/services/patreon_api_client'
   require_relative 'app/services/patreon_stats_calculator'
   require_relative 'app/services/patreon_campaign_discovery'
