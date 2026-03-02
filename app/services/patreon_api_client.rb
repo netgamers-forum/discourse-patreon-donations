@@ -4,9 +4,9 @@ module DiscoursePatreonDonations
   class PatreonApiClient
     BASE_URL = 'https://www.patreon.com/api/oauth2/v2'
     
-    def initialize
-      @access_token = SiteSetting.patreon_creator_access_token
-      @campaign_id = SiteSetting.patreon_campaign_id
+    def initialize(access_token: nil, campaign_id: nil)
+      @access_token = access_token || SiteSetting.patreon_creator_access_token
+      @campaign_id = campaign_id || SiteSetting.patreon_campaign_id
     end
 
     def fetch_campaign_data
@@ -15,6 +15,11 @@ module DiscoursePatreonDonations
       
       response = make_request(endpoint, params)
       response&.dig('data', 0)
+    end
+
+    def discover_campaign_id
+      campaign_data = fetch_campaign_data
+      campaign_data&.dig('id')
     end
 
     def fetch_members
