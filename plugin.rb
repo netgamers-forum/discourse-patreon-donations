@@ -24,7 +24,8 @@ after_initialize do
   require_relative 'app/jobs/sync_patreon_data'
 
   Discourse::Application.routes.append do
-    get '/patreon-stats' => 'patreon_stats#show', constraints: { format: :json }
+    get '/patreon-stats' => 'patreon_stats#show'
+    get '/patreon-stats.json' => 'patreon_stats#show', defaults: { format: :json }
   end
 
   DiscourseEvent.on(:site_setting_changed) do |name, old_value, new_value|

@@ -1,7 +1,11 @@
 en:
+  admin_js:
+    admin:
+      site_settings:
+        categories:
+          patreon_donations: "Patreon Donations"
+  
   site_settings:
-    categories:
-      patreon_donations: "Patreon Donations"
     patreon_donations_enabled: "Enable Patreon Donations plugin"
     patreon_donations_client_id: "Patreon OAuth Client ID"
     patreon_donations_client_secret: "Patreon OAuth Client Secret"
