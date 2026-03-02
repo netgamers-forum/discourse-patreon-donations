@@ -105,9 +105,15 @@ module DiscoursePatreonDonations
       params = { 'include' => 'pledges' }
       
       response = make_request(endpoint, params)
+      Rails.logger.info("V1 API - Campaign response present: #{response.present?}")
+      Rails.logger.info("V1 API - Response data: #{response&.dig('data')&.length || 0} campaigns")
+      
       # V1 returns campaigns in 'data' array
       campaigns = response&.dig('data') || []
-      campaigns.first
+      campaign = campaigns.first
+      
+      Rails.logger.info("V1 API - Campaign attributes: #{campaign&.dig('attributes')&.keys&.join(', ')}")
+      campaign
     end
 
     def fetch_all_campaigns_v1
@@ -130,28 +136,38 @@ module DiscoursePatreonDonations
       response = make_request(endpoint, params)
       return [] unless response
       
+      Rails.logger.info("V1 API - Included items: #{response['included']&.length || 0}")
+      
       # Extract pledges from included array
       pledges = []
       if response['included']
         response['included'].each do |item|
+          Rails.logger.debug("V1 API - Included item type: #{item['type']}")
           pledges << item if item['type'] == 'pledge'
         end
       end
       
+      Rails.logger.info("V1 API - Found #{pledges.length} pledges")
+      
       # V1 pledges need to be converted to v2 member format for compatibility
-      convert_pledges_to_members(pledges)
+      members = convert_pledges_to_members(pledges)
+      Rails.logger.info("V1 API - Converted to #{members.length} members")
+      members
     end
     
     def convert_pledges_to_members(pledges)
       pledges.map do |pledge|
+        attrs = pledge['attributes'] || {}
+        Rails.logger.debug("V1 Pledge attributes: #{attrs.keys.join(', ')}")
+        
         {
           'id' => pledge['id'],
           'type' => 'member',
           'attributes' => {
-            'currently_entitled_amount_cents' => pledge.dig('attributes', 'amount_cents') || 0,
+            'currently_entitled_amount_cents' => attrs['amount_cents'] || 0,
             'patron_status' => pledge_status_to_patron_status(pledge),
-            'last_charge_date' => pledge.dig('attributes', 'created_at'),
-            'last_charge_status' => pledge.dig('attributes', 'declined_since') ? 'Declined' : 'Paid'
+            'last_charge_date' => attrs['created_at'],
+            'last_charge_status' => attrs['declined_since'] ? 'Declined' : 'Paid'
           }
         }
       end
