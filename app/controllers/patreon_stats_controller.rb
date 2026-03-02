@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-module DiscoursePatreonDonations
-  class PatreonStatsController < ::ApplicationController
-    requires_plugin DiscoursePatreonDonations::PLUGIN_NAME
+class PatreonStatsController < ::ApplicationController
+  requires_plugin 'discourse-patreon-donations'
 
-    def index
-      render 'default/empty'
-    end
+  def index
+    render 'default/empty'
+  end
 
     def show
       unless SiteSetting.patreon_enabled
@@ -40,7 +39,7 @@ module DiscoursePatreonDonations
     def fetch_monthly_history
       return [] unless SiteSetting.patreon_campaign_id.present?
 
-      PatreonMonthlyStat
+      DiscoursePatreonDonations::PatreonMonthlyStat
         .last_12_months(SiteSetting.patreon_campaign_id)
         .map(&:to_h)
     rescue StandardError => e
@@ -49,13 +48,13 @@ module DiscoursePatreonDonations
     end
 
     def calculate_fresh_stats
-      client = PatreonApiClient.new
+      client = DiscoursePatreonDonations::PatreonApiClient.new
       campaign_data = client.fetch_campaign_data
       members = client.fetch_members
 
       return nil unless campaign_data && members
 
-      calculator = PatreonStatsCalculator.new(campaign_data, members)
+      calculator = DiscoursePatreonDonations::PatreonStatsCalculator.new(campaign_data, members)
 
       {
         patron_count: calculator.patron_count,

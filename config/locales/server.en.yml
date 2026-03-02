@@ -1,5 +1,7 @@
 en:
   site_settings:
+    categories:
+      patreon: "Patreon"
     patreon_enabled: "Enable Patreon integration"
     patreon_client_id: "Patreon OAuth Client ID"
     patreon_client_secret: "Patreon OAuth Client Secret"
