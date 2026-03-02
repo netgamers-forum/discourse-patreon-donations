@@ -8,6 +8,12 @@ en:
     patreon_campaign_id: "Patreon Campaign ID (automatically discovered, or enter manually)"
     patreon_cache_duration: "Cache duration for Patreon stats (minutes)"
     patreon_sync_frequency: "Background sync frequency (hours)"
+
+  admin_js:
+    admin:
+      site_settings:
+        categories:
+          patreon: "Patreon"
   
   patreon_stats:
     title: "Patreon Campaign Statistics"

@@ -16,7 +16,7 @@ patreon:
     secret: true
   patreon_campaign_id:
     default: ''
-    client: true
+    hidden: true
   patreon_cache_duration:
     default: 30
     min: 5
