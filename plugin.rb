@@ -9,6 +9,8 @@
 enabled_site_setting :patreon_donations_enabled
 
 register_asset 'stylesheets/patreon-stats.scss'
+register_svg_icon 'dollar-sign'
+register_svg_icon 'circle-info'
 
 after_initialize do
   module ::DiscoursePatreonDonations
