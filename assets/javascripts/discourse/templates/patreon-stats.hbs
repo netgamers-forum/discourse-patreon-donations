@@ -36,20 +36,20 @@
             <span class="breakdown-value">${{model.stats.monthly_estimate}}</span>
           </div>
           <div class="breakdown-row deduction">
-            <span class="breakdown-label">Less Patreon fee (10%):</span>
-            <span class="breakdown-value">-${{multiply model.stats.monthly_estimate 0.10}}</span>
+            <span class="breakdown-label">Less Patreon fee ({{siteSettings.patreon_donations_platform_fee_percentage}}%):</span>
+            <span class="breakdown-value">-${{multiply model.stats.monthly_estimate (divide siteSettings.patreon_donations_platform_fee_percentage 100)}}</span>
           </div>
           <div class="breakdown-row subtotal">
             <span class="breakdown-label">Subtotal after Patreon:</span>
-            <span class="breakdown-value">${{multiply model.stats.monthly_estimate 0.90}}</span>
+            <span class="breakdown-value">${{multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))}}</span>
           </div>
           <div class="breakdown-row deduction">
-            <span class="breakdown-label">Less taxes (43%):</span>
-            <span class="breakdown-value">-${{multiply (multiply model.stats.monthly_estimate 0.90) 0.43}}</span>
+            <span class="breakdown-label">Less taxes ({{siteSettings.patreon_donations_tax_rate_percentage}}%):</span>
+            <span class="breakdown-value">-${{multiply (multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))) (divide siteSettings.patreon_donations_tax_rate_percentage 100)}}</span>
           </div>
           <div class="breakdown-row total">
-            <span class="breakdown-label">Net income available (57%):</span>
-            <span class="breakdown-value">${{multiply (multiply model.stats.monthly_estimate 0.90) 0.57}}</span>
+            <span class="breakdown-label">Net income available ({{subtract 100 siteSettings.patreon_donations_tax_rate_percentage}}%):</span>
+            <span class="breakdown-value">${{multiply (multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))) (subtract 1 (divide siteSettings.patreon_donations_tax_rate_percentage 100))}}</span>
           </div>
         </div>
       </div>

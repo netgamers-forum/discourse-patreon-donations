@@ -27,6 +27,18 @@ patreon_donations:
   patreon_donations_campaign_id:
     default: ''
     hidden: true
+  patreon_donations_platform_fee_percentage:
+    default: 10.0
+    min: 0
+    max: 100
+    type: float
+    client: true
+  patreon_donations_tax_rate_percentage:
+    default: 43.0
+    min: 0
+    max: 100
+    type: float
+    client: true
   patreon_donations_cache_duration:
     default: 30
     min: 5
