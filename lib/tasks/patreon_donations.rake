@@ -6,6 +6,14 @@ namespace :patreon_donations do
   task backfill: :environment do
     puts "Starting backfill of Patreon historical data (force refresh)..."
     
+    # Clear cache before backfilling
+    campaign_id = SiteSetting.patreon_donations_campaign_id
+    if campaign_id.present?
+      Rails.cache.delete("patreon_stats:#{campaign_id}")
+      Rails.cache.delete('patreon_last_sync_time')
+      puts "Cleared cache for campaign #{campaign_id}"
+    end
+    
     result = DiscoursePatreonDonations::PatreonMonthlyStat.backfill_historical_data(12, true)
     
     if result[:success]
