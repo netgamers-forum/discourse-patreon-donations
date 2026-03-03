@@ -13,11 +13,19 @@ module DiscoursePatreonDonations
 
     def monthly_estimate
       total_cents = active_members.sum { |m| entitled_amount(m) }
-      total_dollars = total_cents / 100.0
-      
-      Rails.logger.warn("Monthly estimate calculation: #{active_members.count} active members, #{total_cents} total cents, $#{total_dollars}")
-      
-      total_dollars
+
+      # Patreon v1 API no longer returns amount_cents on individual pledges.
+      # Fall back to campaign_pledge_sum (in cents) from the campaign object.
+      if total_cents == 0 && active_members.any?
+        pledge_sum = @campaign_data&.dig('attributes', 'campaign_pledge_sum').to_i
+        if pledge_sum > 0
+          Rails.logger.warn("Monthly estimate: using campaign_pledge_sum #{pledge_sum} cents")
+          return pledge_sum / 100.0
+        end
+      end
+
+      Rails.logger.warn("Monthly estimate calculation: #{active_members.count} active members, #{total_cents} total cents, $#{total_cents / 100.0}")
+      total_cents / 100.0
     end
 
     def last_month_total
