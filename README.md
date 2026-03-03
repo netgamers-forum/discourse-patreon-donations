@@ -41,17 +41,29 @@ After installation, navigate to **Admin > Settings > Plugins > Patreon Donations
 | `patreon_donations_platform_fee_percentage` | Patreon's platform fee, used in the revenue breakdown on the stats page. | `10.0` |
 | `patreon_donations_tax_rate_percentage` | Tax rate applied to net revenue (after platform fees) in the revenue breakdown. | `43.0` |
 | `patreon_donations_allowed_groups` | Discourse groups whose members can view the stats page. Admins always have access. | `admins` |
-| `patreon_donations_cache_duration` | How long API responses are cached, in minutes. | `30` |
+| `patreon_donations_cache_duration` | How long API responses are cached, in hours. | `6` |
 | `patreon_donations_sync_frequency` | How often the background job syncs data from Patreon, in hours. | `24` |
 
 The campaign ID is stored internally in a hidden setting (`patreon_donations_campaign_id`) and is resolved automatically from the campaign URL. If auto-discovery fails, you can set it manually via the Rails console.
 
 ## How it works
 
-1. A Sidekiq background job runs at the configured interval, calls the Patreon API, and caches the results in Redis.
-2. When a user visits `/patreon-stats`, the controller returns cached data. If the cache is empty, it fetches fresh data from Patreon on demand.
-3. At the beginning of each month, the sync job records a snapshot of patron count and total pledged amount into the database for historical tracking.
-4. If the access token expires, the plugin attempts an automatic token refresh using the refresh token, client ID, and client secret from the core Patreon plugin settings.
+**Live stats (the three summary boxes)**
+
+A Sidekiq background job syncs data from the Patreon API at the interval set by `patreon_donations_sync_frequency`. The result is cached in Redis for `patreon_donations_cache_duration` hours. When a user visits `/patreon-stats`, the controller serves the cached data; if the cache has expired it fetches fresh data from Patreon on demand.
+
+The three summary boxes show:
+- Current active subscriber count from the Patreon campaign
+- Estimated revenue for the current month, derived from the campaign's total pledge sum
+- Difference between the current estimate and the most recent monthly snapshot (see below); shown as N/A only if no snapshots exist yet
+
+**Monthly history**
+
+During the first sync that runs in a new calendar month, the job records a snapshot of the patron count and total pledge amount for that month. Once written, the snapshot is not updated again within the same month. This gives a stable baseline for the month-over-month change calculation and populates the 12-month history table.
+
+**Token refresh**
+
+If the Patreon API returns a 401, the plugin attempts to refresh the access token automatically using the refresh token, client ID, and client secret stored in the core Patreon plugin settings. If the refresh token is also expired, new credentials must be generated from the Patreon developer portal and entered into the core plugin settings manually.
 
 ## License
 

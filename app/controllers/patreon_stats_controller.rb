@@ -125,6 +125,6 @@ class PatreonStatsController < ::ApplicationController
   end
 
   def cache_duration
-    SiteSetting.patreon_donations_cache_duration.minutes
+    SiteSetting.patreon_donations_cache_duration.hours
   end
 end

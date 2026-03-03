@@ -13,7 +13,7 @@ en:
     patreon_donations_platform_fee_percentage: "Patreon platform fee percentage (default: 10%)"
     patreon_donations_tax_rate_percentage: "Tax rate percentage applied to net revenue after platform fees (default: 43%)"
     patreon_donations_allowed_groups: "Groups allowed to view Patreon donation statistics (default: admins)"
-    patreon_donations_cache_duration: "Cache duration for Patreon stats (minutes)"
+    patreon_donations_cache_duration: "Cache duration for Patreon stats (hours)"
     patreon_donations_sync_frequency: "Background sync frequency (hours)"
 
   patreon_stats:
