@@ -43,7 +43,7 @@ module DiscoursePatreonDonations
       records.delete_all if records.any?
     end
 
-    def self.backfill_historical_data(months_back = 12, force_refresh = false)
+    def self.snapshot_current_month
       return { success: false, error: "Campaign ID not configured" } unless SiteSetting.patreon_donations_campaign_id.present?
 
       begin
@@ -59,46 +59,16 @@ module DiscoursePatreonDonations
 
         campaign_id = SiteSetting.patreon_donations_campaign_id
         now = Time.now.utc
-        created_count = 0
-        updated_count = 0
+        year = now.year
+        month = now.month
 
-        # Delete existing records if force_refresh is true
-        if force_refresh
-          deleted = where(campaign_id: campaign_id).delete_all
-          Rails.logger.info("Backfill: Deleted #{deleted} existing records for force refresh")
-        end
+        # Create or update only the current month
+        stat = record_monthly_snapshot(campaign_id, current_patron_count, current_amount_cents, now)
 
-        months_back.times do |i|
-          date = now - i.months
-          year = date.year
-          month = date.month
-
-          existing = find_by(campaign_id: campaign_id, year: year, month: month)
-          
-          if existing && !force_refresh
-            next
-          elsif existing
-            existing.update!(
-              patron_count: current_patron_count,
-              total_amount_cents: current_amount_cents
-            )
-            updated_count += 1
-          else
-            create!(
-              campaign_id: campaign_id,
-              year: year,
-              month: month,
-              patron_count: current_patron_count,
-              total_amount_cents: current_amount_cents
-            )
-            created_count += 1
-          end
-        end
-
-        Rails.logger.info("Backfilled historical data for campaign #{campaign_id}: #{created_count} created, #{updated_count} updated")
-        { success: true, created: created_count, updated: updated_count, message: "Backfilled #{created_count} month(s), updated #{updated_count} month(s)" }
+        Rails.logger.info("Created/updated current month snapshot for campaign #{campaign_id}: #{current_patron_count} patrons, $#{current_amount_cents / 100.0}")
+        { success: true, message: "Snapshot created for #{year}-#{month}: #{current_patron_count} patrons, $#{current_amount_cents / 100.0}" }
       rescue StandardError => e
-        Rails.logger.error("Backfill failed: #{e.message}")
+        Rails.logger.error("Snapshot failed: #{e.message}")
         { success: false, error: e.message }
       end
     end

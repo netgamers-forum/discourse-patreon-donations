@@ -37,26 +37,33 @@
     {{#if model.monthly_history}}
       <div class="patreon-monthly-history">
         <h2>Monthly History (Last 12 Months)</h2>
-        <div class="monthly-history-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Month</th>
-                <th>Patrons</th>
-                <th>Total Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{#each model.monthly_history as |record|}}
+        {{#if model.monthly_history.length}}
+          <div class="monthly-history-table">
+            <table>
+              <thead>
                 <tr>
-                  <td>{{month-name record.month}} {{record.year}}</td>
-                  <td>{{record.patron_count}}</td>
-                  <td>${{record.total_amount}}</td>
+                  <th>Month</th>
+                  <th>Patrons</th>
+                  <th>Total Amount</th>
                 </tr>
-              {{/each}}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {{#each model.monthly_history as |record|}}
+                  <tr>
+                    <td>{{month-name record.month}} {{record.year}}</td>
+                    <td>{{record.patron_count}}</td>
+                    <td>${{record.total_amount}}</td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        {{else}}
+          <div class="no-history-message">
+            <p>No historical data available yet. Monthly snapshots will accumulate over time as the sync job runs.</p>
+            <p>Historical data is created automatically at the beginning of each month.</p>
+          </div>
+        {{/if}}
       </div>
     {{/if}}
   {{else}}

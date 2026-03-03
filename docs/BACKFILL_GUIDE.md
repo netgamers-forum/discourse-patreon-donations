@@ -1,19 +1,19 @@
-# Backfill Historical Data
+# Monthly Snapshots
 
-Since Patreon's API doesn't provide historical payment data, you can backfill up to 12 months of historical snapshots using current patron data.
+Since Patreon's API doesn't provide historical payment data, the plugin creates monthly snapshots of current patron data.
 
 ## Usage
 
-### Via Rake Task (Recommended)
+### Manual Snapshot (One-time Setup)
 
-From the Discourse app container:
+When first setting up the plugin, create a snapshot for the current month:
 
 ```bash
 cd /var/www/discourse
-rake patreon_donations:backfill
+rake patreon_donations:snapshot
 ```
 
-To view current historical data:
+### View Historical Data
 
 ```bash
 rake patreon_donations:status
@@ -25,8 +25,8 @@ rake patreon_donations:status
 cd /var/www/discourse
 rails console
 
-# Backfill 12 months
-result = DiscoursePatreonDonations::PatreonMonthlyStat.backfill_historical_data(12)
+# Create current month snapshot
+result = DiscoursePatreonDonations::PatreonMonthlyStat.snapshot_current_month
 puts result.inspect
 
 # View records
@@ -40,13 +40,14 @@ DiscoursePatreonDonations::PatreonMonthlyStat
 ## How It Works
 
 1. Fetches current Patreon campaign data
-2. Creates historical records for past N months using current patron count
-3. Skips months that already have data
-4. Returns count of created records
+2. Creates/updates a snapshot for the current month only
+3. Does NOT create fake historical data for past months
+4. Historical data accumulates naturally as months pass
 
 ## Important Notes
 
-- **Data Limitation**: Backfilled data uses current patron counts for all past months
-- **Retention**: Only keeps most recent 12 months (older records are auto-deleted)
-- **One-time Use**: Primarily useful when first setting up the plugin
-- **Going Forward**: The sync job runs hourly and creates real monthly snapshots
+- **No Historical Backfill**: The plugin only creates snapshots for the current month
+- **Data Accumulation**: Historical data builds up month-by-month as the sync job runs
+- **Retention**: Keeps most recent 12 months (older records are auto-deleted)
+- **Automatic Sync**: The background job runs hourly and updates the current month snapshot
+- **First Month**: After initial setup, only the current month will show data; previous months will be empty until time passes
