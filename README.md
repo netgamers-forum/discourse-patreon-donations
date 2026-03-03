@@ -48,7 +48,7 @@ The campaign ID is stored internally in a hidden setting (`patreon_donations_cam
 
 ## How it works
 
-**Live stats (the three summary boxes)**
+**Live stats**
 
 A Sidekiq background job syncs data from the Patreon API at the interval set by `patreon_donations_sync_frequency`. The result is cached in Redis for `patreon_donations_cache_duration` hours. When a user visits `/patreon-stats`, the controller serves the cached data; if the cache has expired it fetches fresh data from Patreon on demand.
 
