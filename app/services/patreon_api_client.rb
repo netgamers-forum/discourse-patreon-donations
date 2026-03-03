@@ -192,9 +192,16 @@ module DiscoursePatreonDonations
       uri = URI.parse(url)
       path = uri.path
       
-      # Remove the base path if it's included (v1: /oauth2/api, v2: /api/oauth2/v2)
-      path = path.sub(%r{^/oauth2/api}, '') if @api_version == 'v1'
-      path = path.sub(%r{^/api/oauth2/v2}, '') if @api_version == 'v2'
+      # Remove the API base path if it's included in the next URL
+      # v1 base: /oauth2/api, but next URLs may include /api/oauth2/api
+      # v2 base: /api/oauth2/v2
+      if @api_version == 'v1'
+        # Strip both possible v1 path prefixes
+        path = path.sub(%r{^/api/oauth2/api}, '')
+        path = path.sub(%r{^/oauth2/api}, '')
+      elsif @api_version == 'v2'
+        path = path.sub(%r{^/api/oauth2/v2}, '')
+      end
       
       # Add query string if present
       path += "?#{uri.query}" if uri.query
