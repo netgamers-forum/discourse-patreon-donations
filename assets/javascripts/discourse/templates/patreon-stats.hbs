@@ -1,21 +1,14 @@
 <div class="patreon-stats-page">
   <h1>Patreon Campaign Statistics</h1>
   
-  {{! Debug output - remove after testing }}
-  <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc;">
-    <strong>Debug Info:</strong><br>
-    model.error = {{model.error}}<br>
-    model.stats exists = {{if model.stats "YES" "NO"}}<br>
-    model.stats.patron_count = {{model.stats.patron_count}}<br>
-    model.monthly_history exists = {{if model.monthly_history "YES" "NO"}}<br>
-  </div>
-  
   {{#if model.error}}
     <div class="patreon-stats-error">
       <p class="error-message">⚠️ {{model.message}}</p>
       <p>Please check the Discourse logs for more details or contact an administrator.</p>
     </div>
-  {{else if model.stats}}
+  {{/if}}
+  
+  {{#if model.stats}}
     <div class="patreon-stats-container">
       <div class="stat-card">
         <h3>Active Subscribers</h3>

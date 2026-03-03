@@ -33,13 +33,11 @@ after_initialize do
   Discourse::Application.routes.append do
     namespace :admin, constraints: StaffConstraint.new do
       namespace :plugins do
-        get 'patreon-donations' => 'patreon_donations/admin/patreon_donations#index'
-        post 'patreon-donations/backfill' => 'patreon_donations/admin/patreon_donations#backfill_history'
+        get 'patreon-donations' => 'discourse_patreon_donations/admin/patreon_donations#index'
+        post 'patreon-donations/backfill' => 'discourse_patreon_donations/admin/patreon_donations#backfill_history'
       end
     end
   end
-
-  add_admin_route 'patreon_donations.admin.title', 'patreon-donations'
 
   DiscourseEvent.on(:site_setting_changed) do |name, old_value, new_value|
     if name == :patreon_donations_campaign_url && new_value.present?
