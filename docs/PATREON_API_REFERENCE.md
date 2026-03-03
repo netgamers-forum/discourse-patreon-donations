@@ -12,7 +12,7 @@ The plugin supports both **v1** and **v2** API endpoints:
   - Better documentation and support
   
 - **v1 (Legacy)**: Older API version, use only if you have a v1 OAuth client
-  - Base URL: `https://api.patreon.com/oauth2/api`  
+  - Base URL: `https://api.patreon.com/oauth2/api`
   - Compatible with older OAuth clients
   - May have limited future support
   - Uses dedicated `/campaigns/{id}/pledges` endpoint with pagination
