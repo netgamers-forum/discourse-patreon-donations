@@ -73,22 +73,13 @@ class PatreonStatsController < ::ApplicationController
   def calculate_monthly_change(current_estimate, monthly_history)
     return nil if monthly_history.empty?
 
-    current_date = Time.now.utc
-    current_year = current_date.year
-    current_month = current_date.month
+    # Use the most recent snapshot as the baseline regardless of which month it belongs to.
+    # N/A is only appropriate when there is no historical data at all.
+    last_snapshot = monthly_history.last
+    return nil unless last_snapshot
 
-    # Find the most recent snapshot that's NOT the current month
-    # (we want last completed month to compare against)
-    last_month_snapshot = monthly_history.reverse.find do |month|
-      month[:year] != current_year || month[:month] != current_month
-    end
-    
-    return nil unless last_month_snapshot
-    
-    # Compare current estimate vs last month's snapshot
-    change = current_estimate - last_month_snapshot[:total_amount]
-    
-    Rails.logger.info("Monthly change: $#{current_estimate} (current estimate) - $#{last_month_snapshot[:total_amount]} (#{last_month_snapshot[:year]}-#{last_month_snapshot[:month]} snapshot) = $#{change}")
+    change = current_estimate - last_snapshot[:total_amount]
+    Rails.logger.info("Monthly change: #{current_estimate} (current) - #{last_snapshot[:total_amount]} (#{last_snapshot[:year]}-#{last_snapshot[:month]} snapshot) = #{change}")
     change
   rescue StandardError => e
     Rails.logger.error("Error calculating monthly change: #{e.message}")
