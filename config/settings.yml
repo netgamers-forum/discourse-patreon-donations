@@ -9,18 +9,6 @@ patreon_donations:
       - v1
       - v2
     client: true
-  patreon_donations_client_id:
-    default: ''
-    secret: true
-  patreon_donations_client_secret:
-    default: ''
-    secret: true
-  patreon_donations_creator_access_token:
-    default: ''
-    secret: true
-  patreon_donations_creator_refresh_token:
-    default: ''
-    secret: true
   patreon_donations_campaign_url:
     default: ''
     client: true

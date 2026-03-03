@@ -6,10 +6,10 @@ module DiscoursePatreonDonations
     BASE_URL_V2 = 'https://www.patreon.com/api/oauth2/v2'
     
     def initialize(access_token: nil, campaign_id: nil)
-      @access_token = (access_token || SiteSetting.patreon_donations_creator_access_token).to_s.strip
+      @access_token = (access_token || SiteSetting.patreon_creator_access_token).to_s.strip
       @campaign_id = (campaign_id || SiteSetting.patreon_donations_campaign_id).to_s.strip
       @api_version = SiteSetting.patreon_donations_api_version || 'v2'
-      
+
       if @access_token.blank?
         Rails.logger.error("Patreon API: No access token configured!")
       else
@@ -306,9 +306,9 @@ module DiscoursePatreonDonations
     end
 
     def refresh_access_token
-      refresh_token = SiteSetting.patreon_donations_creator_refresh_token
-      client_id = SiteSetting.patreon_donations_client_id
-      client_secret = SiteSetting.patreon_donations_client_secret
+      refresh_token = SiteSetting.patreon_creator_refresh_token
+      client_id = SiteSetting.patreon_client_id
+      client_secret = SiteSetting.patreon_client_secret
 
       if refresh_token.blank? || client_id.blank? || client_secret.blank?
         Rails.logger.error("Patreon API: Cannot refresh token - missing refresh_token, client_id, or client_secret")
@@ -332,11 +332,11 @@ module DiscoursePatreonDonations
 
       if response.is_a?(Net::HTTPSuccess)
         data = JSON.parse(response.body)
-        SiteSetting.patreon_donations_creator_access_token = data["access_token"]
+        SiteSetting.patreon_creator_access_token = data["access_token"]
         @access_token = data["access_token"]
 
         if data["refresh_token"].present?
-          SiteSetting.patreon_donations_creator_refresh_token = data["refresh_token"]
+          SiteSetting.patreon_creator_refresh_token = data["refresh_token"]
         end
 
         Rails.logger.info("Patreon API: Access token refreshed successfully")
