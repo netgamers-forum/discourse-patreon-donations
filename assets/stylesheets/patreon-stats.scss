@@ -102,6 +102,11 @@
           font-weight: 600;
           color: var(--primary);
           border-bottom: 2px solid var(--primary-medium);
+
+          &:nth-child(2),
+          &:nth-child(3) {
+            text-align: right;
+          }
         }
       }
 
