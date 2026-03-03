@@ -105,8 +105,8 @@ module DiscoursePatreonDonations
       params = { 'include' => 'pledges' }
       
       response = make_request(endpoint, params)
-      Rails.logger.info("V1 API - Campaign response present: #{response.present?}")
-      Rails.logger.info("V1 API - Response data: #{response&.dig('data')&.length || 0} campaigns")
+      Rails.logger.warn("V1 API - Campaign response present: #{response.present?}")
+      Rails.logger.warn("V1 API - Response data: #{response&.dig('data')&.length || 0} campaigns")
       
       # V1 returns campaigns in 'data' array
       campaigns = response&.dig('data') || []
@@ -116,18 +116,18 @@ module DiscoursePatreonDonations
       if campaign && @campaign_id.blank?
         discovered_id = campaign['id']
         if discovered_id.present?
-          Rails.logger.info("V1 API - Auto-discovered campaign_id: #{discovered_id}")
+          Rails.logger.warn("V1 API - Auto-discovered campaign_id: #{discovered_id}")
           SiteSetting.patreon_donations_campaign_id = discovered_id
           @campaign_id = discovered_id
         end
       end
       
-      Rails.logger.info("V1 API - Campaign attributes: #{campaign&.dig('attributes')&.keys&.join(', ')}")
+      Rails.logger.warn("V1 API - Campaign attributes: #{campaign&.dig('attributes')&.keys&.join(', ')}")
       
       # Log full attributes for debugging
       if campaign
         attrs = campaign['attributes'] || {}
-        Rails.logger.info("V1 API - Campaign full attributes: #{attrs.inspect}")
+        Rails.logger.warn("V1 API - Campaign full attributes: #{attrs.inspect}")
       end
       
       campaign
@@ -159,7 +159,7 @@ module DiscoursePatreonDonations
         response = make_request(endpoint, params)
         break unless response
         
-        Rails.logger.info("V1 API - Page #{page}: Included items: #{response['included']&.length || 0}")
+        Rails.logger.warn("V1 API - Page #{page}: Included items: #{response['included']&.length || 0}")
         
         # Extract pledges from included array
         page_pledges = []
@@ -170,10 +170,11 @@ module DiscoursePatreonDonations
         end
         
         all_pledges.concat(page_pledges)
-        Rails.logger.info("V1 API - Page #{page}: Found #{page_pledges.length} pledges (total: #{all_pledges.length})")
+        Rails.logger.warn("V1 API - Page #{page}: Found #{page_pledges.length} pledges (total: #{all_pledges.length})")
         
         # Check for next page
         next_link = response.dig('links', 'next')
+        Rails.logger.warn("V1 API - Next link: #{next_link}")
         break unless next_link
         
         # Extract cursor from next link
@@ -187,11 +188,11 @@ module DiscoursePatreonDonations
         break if page > 10
       end
       
-      Rails.logger.info("V1 API - Total pledges fetched: #{all_pledges.length}")
+      Rails.logger.warn("V1 API - Total pledges fetched: #{all_pledges.length}")
       
       # V1 pledges need to be converted to v2 member format for compatibility
       members = convert_pledges_to_members(all_pledges)
-      Rails.logger.info("V1 API - Converted to #{members.length} members")
+      Rails.logger.warn("V1 API - Converted to #{members.length} members")
       members
     end
 
@@ -212,7 +213,7 @@ module DiscoursePatreonDonations
         attrs = pledge['attributes'] || {}
         amount_cents = attrs['amount_cents'] || 0
         
-        Rails.logger.info("V1 Pledge: id=#{pledge['id']}, amount_cents=#{amount_cents}, declined=#{attrs['declined_since']}")
+        Rails.logger.warn("V1 Pledge: id=#{pledge['id']}, amount_cents=#{amount_cents}, declined=#{attrs['declined_since']}")
         
         {
           'id' => pledge['id'],

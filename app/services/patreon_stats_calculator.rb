@@ -15,7 +15,7 @@ module DiscoursePatreonDonations
       total_cents = active_members.sum { |m| entitled_amount(m) }
       total_dollars = total_cents / 100.0
       
-      Rails.logger.info("Monthly estimate calculation: #{active_members.count} active members, #{total_cents} total cents, $#{total_dollars}")
+      Rails.logger.warn("Monthly estimate calculation: #{active_members.count} active members, #{total_cents} total cents, $#{total_dollars}")
       
       total_dollars
     end
