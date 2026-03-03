@@ -203,13 +203,15 @@ module DiscoursePatreonDonations
     def convert_pledges_to_members(pledges)
       pledges.map do |pledge|
         attrs = pledge['attributes'] || {}
-        Rails.logger.debug("V1 Pledge attributes: #{attrs.keys.join(', ')}")
+        amount_cents = attrs['amount_cents'] || 0
+        
+        Rails.logger.info("V1 Pledge: id=#{pledge['id']}, amount_cents=#{amount_cents}, declined=#{attrs['declined_since']}")
         
         {
           'id' => pledge['id'],
           'type' => 'member',
           'attributes' => {
-            'currently_entitled_amount_cents' => attrs['amount_cents'] || 0,
+            'currently_entitled_amount_cents' => amount_cents,
             'patron_status' => pledge_status_to_patron_status(pledge),
             'last_charge_date' => attrs['created_at'],
             'last_charge_status' => attrs['declined_since'] ? 'Declined' : 'Paid'
