@@ -111,14 +111,14 @@ Sum of all currently_entitled_amount_cents
 
 - Discourse instance (self-hosted or managed)
 - Patreon Creator account
-- Patreon OAuth client credentials
+- **[discourse-patreon](https://github.com/discourse/discourse-patreon) plugin installed and configured** with valid OAuth credentials (Client ID, Client Secret, Creator Access Token, Refresh Token). This plugin reads credentials from the core Patreon plugin -- it does not store its own copy.
 
 ### Steps
 
-1. **Register Patreon OAuth Client**
-   - Visit https://www.patreon.com/portal/registration/register-clients
-   - Create a new client
-   - Note your Client ID, Client Secret, and Access Token
+1. **Ensure the core Patreon plugin is configured**
+   - Navigate to Admin → Settings → Plugins → Patreon
+   - Verify that Client ID, Client Secret, Creator Access Token, and Refresh Token are filled in and working
+   - If not already set up, follow the [core Patreon plugin instructions](https://github.com/discourse/discourse-patreon)
 
 2. **Install Plugin**
    ```bash
@@ -129,14 +129,10 @@ Sum of all currently_entitled_amount_cents
 
 3. **Configure Plugin**
    - Navigate to Admin → Settings → Plugins → Patreon Donations
-   - Enter your Patreon credentials:
-     - Client ID
-     - Client Secret
-     - Access Token (Campaign ID will be auto-discovered when you save this)
-     - Refresh Token
-   - The Campaign ID will be automatically discovered and populated
-   - Set sync frequency (default: daily)
-   - Save settings
+   - Enable the plugin
+   - Enter your Campaign URL (Campaign ID will be auto-discovered)
+   - Adjust platform fee %, tax rate %, and allowed groups as needed
+   - Set cache duration and sync frequency
    - Save settings
 
 4. **Verify Installation**
@@ -147,17 +143,18 @@ Sum of all currently_entitled_amount_cents
 
 ### Admin Settings
 
+**Note:** OAuth credentials (Client ID, Client Secret, Access Token, Refresh Token) are read from the core [discourse-patreon](https://github.com/discourse/discourse-patreon) plugin. Configure them there, not here.
+
 | Setting | Description | Default |
 |---------|-------------|---------|
-| `patreon_client_id` | OAuth Client ID from Patreon | - |
-| `patreon_client_secret` | OAuth Client Secret | - |
-| `patreon_access_token` | Creator's Access Token | - |
-| `patreon_refresh_token` | Token for refreshing access | - |
-| `patreon_campaign_id` | Your Patreon campaign ID | - |
-| `patreon_sync_frequency` | How often to sync (hours) | 24 |
-| `patreon_cache_duration` | Cache duration (minutes) | 30 |
-| `patreon_show_in_sidebar` | Add link to sidebar | true |
-| `patreon_page_title` | Custom page title | "Patreon Support" |
+| `patreon_donations_enabled` | Enable the plugin | false |
+| `patreon_donations_api_version` | Patreon API version (v1 or v2) | v2 |
+| `patreon_donations_campaign_url` | Campaign URL for auto-discovery | - |
+| `patreon_donations_platform_fee_percentage` | Patreon platform fee % | 10.0 |
+| `patreon_donations_tax_rate_percentage` | Tax rate % on net revenue | 43.0 |
+| `patreon_donations_allowed_groups` | Groups allowed to view stats | admins |
+| `patreon_donations_cache_duration` | Cache duration (minutes) | 30 |
+| `patreon_donations_sync_frequency` | Background sync frequency (hours) | 24 |
 
 ### How to Get Your Campaign ID
 

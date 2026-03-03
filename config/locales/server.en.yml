@@ -20,6 +20,6 @@ en:
     title: "Patreon Campaign Statistics"
     error:
       fetch_failed: "Unable to fetch Patreon statistics. Please try again later."
-      not_configured: "Patreon integration is not properly configured. Please contact an administrator."
+      not_configured: "Patreon integration is not properly configured. Ensure the core Patreon plugin has valid OAuth credentials."
       not_authorized: "You do not have permission to view Patreon statistics."
       api_error: "An error occurred while communicating with Patreon. Please try again later."
