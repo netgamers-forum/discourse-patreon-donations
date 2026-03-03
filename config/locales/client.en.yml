@@ -1,13 +1,5 @@
 en:
   js:
-    patreon_donations:
-      admin:
-        title: "Patreon Donations"
-        history:
-          title: "Historical Data"
-          description: "Backfill up to 12 months of historical statistics using current patron data. This creates historical snapshots based on current values."
-          backfill_button: "Backfill Historical Data"
-    
     patreon_stats:
       title: "Patreon Campaign Statistics"
       error:
