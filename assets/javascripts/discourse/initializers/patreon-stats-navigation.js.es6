@@ -11,24 +11,12 @@ export default {
     }
     
     withPluginApi("0.8.31", (api) => {
-      // Add to hamburger menu
-      api.decorateWidget("hamburger-menu:generalLinks", () => {
-        return {
-          route: "patreon-stats",
-          label: "Patreon Statistics",
-          className: "patreon-stats-link"
-        };
+      api.addCommunitySectionLink({
+        name: "patreon-stats",
+        route: "patreon-stats",
+        text: "Patreon Statistics",
+        title: "View Patreon campaign statistics"
       });
-      
-      // Add to sidebar (for modern Discourse)
-      if (api.addCommunitySectionLink) {
-        api.addCommunitySectionLink({
-          name: "patreon-stats",
-          route: "patreon-stats",
-          text: "Patreon Statistics",
-          title: "View Patreon campaign statistics"
-        });
-      }
     });
   }
 };
