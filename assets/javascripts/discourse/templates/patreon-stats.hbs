@@ -66,6 +66,7 @@
                   <th>Month</th>
                   <th>Patrons</th>
                   <th>Est. Amount</th>
+                  <th>Est. Net</th>
                 </tr>
               </thead>
               <tbody>
@@ -74,6 +75,7 @@
                     <td>{{month-name record.month}} {{record.year}}</td>
                     <td>{{record.patron_count}}</td>
                     <td>{{model.stats.currency}} {{multiply record.total_amount 1}}</td>
+                    <td>{{#if record.net_amount}}{{model.stats.currency}} {{multiply record.net_amount 1}}{{else}}N/A{{/if}}</td>
                   </tr>
                 {{/each}}
               </tbody>
