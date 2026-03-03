@@ -34,6 +34,35 @@
       </div>
     </div>
     
+    <div class="patreon-breakdown">
+      <h3>Revenue Breakdown</h3>
+      <div class="breakdown-content">
+        <p class="breakdown-note">Understanding the actual income available for expenses:</p>
+        <div class="breakdown-table">
+          <div class="breakdown-row">
+            <span class="breakdown-label">Gross monthly revenue:</span>
+            <span class="breakdown-value">${{model.stats.monthly_estimate}}</span>
+          </div>
+          <div class="breakdown-row deduction">
+            <span class="breakdown-label">Less Patreon fee (10%):</span>
+            <span class="breakdown-value">-${{multiply model.stats.monthly_estimate 0.10}}</span>
+          </div>
+          <div class="breakdown-row subtotal">
+            <span class="breakdown-label">Subtotal after Patreon:</span>
+            <span class="breakdown-value">${{multiply model.stats.monthly_estimate 0.90}}</span>
+          </div>
+          <div class="breakdown-row deduction">
+            <span class="breakdown-label">Less taxes (43%):</span>
+            <span class="breakdown-value">-${{multiply (multiply model.stats.monthly_estimate 0.90) 0.43}}</span>
+          </div>
+          <div class="breakdown-row total">
+            <span class="breakdown-label">Net income available (57%):</span>
+            <span class="breakdown-value">${{multiply (multiply model.stats.monthly_estimate 0.90) 0.57}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     {{#if model.monthly_history}}
       <div class="patreon-monthly-history">
         <h2>Monthly History (Last 12 Months)</h2>
