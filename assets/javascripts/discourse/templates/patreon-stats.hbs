@@ -1,6 +1,14 @@
 <div class="patreon-stats-page">
   <h1>Patreon Campaign Statistics</h1>
   
+  {{! Debug output }}
+  <div style="background: yellow; padding: 10px; margin: 10px 0;">
+    <strong>Debug:</strong><br>
+    model.stats = {{model.stats}}<br>
+    patron_count = {{model.stats.patron_count}}<br>
+    monthly_estimate = {{model.stats.monthly_estimate}}<br>
+  </div>
+  
   {{#if model.error}}
     <div class="patreon-stats-error">
       <p class="error-message">⚠️ {{model.message}}</p>
@@ -17,12 +25,12 @@
       
       <div class="stat-card">
         <h3>Monthly Estimate</h3>
-        <p class="stat-value">${{format-number model.stats.monthly_estimate minimumFractionDigits=2 maximumFractionDigits=2}}</p>
+        <p class="stat-value">${{model.stats.monthly_estimate}}</p>
       </div>
       
       <div class="stat-card">
         <h3>Last Month Total</h3>
-        <p class="stat-value">${{format-number model.stats.last_month_total minimumFractionDigits=2 maximumFractionDigits=2}}</p>
+        <p class="stat-value">${{model.stats.last_month_total}}</p>
       </div>
     </div>
     
@@ -43,7 +51,7 @@
                 <tr>
                   <td>{{month-name record.month}} {{record.year}}</td>
                   <td>{{record.patron_count}}</td>
-                  <td>${{format-number record.total_amount minimumFractionDigits=2 maximumFractionDigits=2}}</td>
+                  <td>${{record.total_amount}}</td>
                 </tr>
               {{/each}}
             </tbody>
@@ -53,7 +61,7 @@
     {{/if}}
   {{else}}
     <div class="patreon-stats-error">
-      <p>{{i18n "patreon_stats.error.fetch_failed"}}</p>
+      <p>No stats data available</p>
     </div>
   {{/if}}
 </div>
