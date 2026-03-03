@@ -2,15 +2,16 @@
 
 desc "Patreon Donations tasks"
 namespace :patreon_donations do
-  desc "Backfill historical data (up to 12 months)"
+  desc "Backfill historical data (up to 12 months) - force refreshes all data"
   task backfill: :environment do
-    puts "Starting backfill of Patreon historical data..."
+    puts "Starting backfill of Patreon historical data (force refresh)..."
     
-    result = DiscoursePatreonDonations::PatreonMonthlyStat.backfill_historical_data(12)
+    result = DiscoursePatreonDonations::PatreonMonthlyStat.backfill_historical_data(12, true)
     
     if result[:success]
       puts "✓ Success: #{result[:message]}"
-      puts "  Created #{result[:created]} historical record(s)"
+      puts "  Created: #{result[:created]} record(s)"
+      puts "  Updated: #{result[:updated]} record(s)"
     else
       puts "✗ Error: #{result[:error]}"
       exit 1
