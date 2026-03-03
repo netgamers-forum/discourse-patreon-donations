@@ -137,32 +137,67 @@ module DiscoursePatreonDonations
     def fetch_members_v1
       # V1 API doesn't have a separate members endpoint
       # Instead, we get pledges via the campaign endpoint with includes
-      endpoint = '/current_user/campaigns'
-      params = { 
-        'include' => 'pledges',
-        'page[count]' => '100'
-      }
+      all_pledges = []
+      cursor = nil
+      page = 1
       
-      response = make_request(endpoint, params)
-      return [] unless response
-      
-      Rails.logger.info("V1 API - Included items: #{response['included']&.length || 0}")
-      
-      # Extract pledges from included array
-      pledges = []
-      if response['included']
-        response['included'].each do |item|
-          Rails.logger.debug("V1 API - Included item type: #{item['type']}")
-          pledges << item if item['type'] == 'pledge'
+      loop do
+        endpoint = '/current_user/campaigns'
+        params = { 
+          'include' => 'pledges',
+          'page[count]' => '100'
+        }
+        params['page[cursor]'] = cursor if cursor
+        
+        response = make_request(endpoint, params)
+        break unless response
+        
+        Rails.logger.info("V1 API - Page #{page}: Included items: #{response['included']&.length || 0}")
+        
+        # Extract pledges from included array
+        page_pledges = []
+        if response['included']
+          response['included'].each do |item|
+            page_pledges << item if item['type'] == 'pledge'
+          end
         end
+        
+        all_pledges.concat(page_pledges)
+        Rails.logger.info("V1 API - Page #{page}: Found #{page_pledges.length} pledges (total: #{all_pledges.length})")
+        
+        # Check for next page
+        next_link = response.dig('links', 'next')
+        break unless next_link
+        
+        # Extract cursor from next link
+        next_cursor = extract_cursor_from_url(next_link)
+        break if next_cursor.nil? || next_cursor == cursor
+        
+        cursor = next_cursor
+        page += 1
+        
+        # Safety limit to prevent infinite loops
+        break if page > 10
       end
       
-      Rails.logger.info("V1 API - Found #{pledges.length} pledges")
+      Rails.logger.info("V1 API - Total pledges fetched: #{all_pledges.length}")
       
       # V1 pledges need to be converted to v2 member format for compatibility
-      members = convert_pledges_to_members(pledges)
+      members = convert_pledges_to_members(all_pledges)
       Rails.logger.info("V1 API - Converted to #{members.length} members")
       members
+    end
+
+    def extract_cursor_from_url(url)
+      return nil unless url
+      
+      uri = URI.parse(url)
+      params = URI.decode_www_form(uri.query || '')
+      cursor_param = params.find { |k, v| k == 'page[cursor]' }
+      cursor_param ? cursor_param[1] : nil
+    rescue StandardError => e
+      Rails.logger.error("Failed to extract cursor from URL: #{e.message}")
+      nil
     end
     
     def convert_pledges_to_members(pledges)
