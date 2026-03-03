@@ -12,9 +12,10 @@ The plugin supports both **v1** and **v2** API endpoints:
   - Better documentation and support
   
 - **v1 (Legacy)**: Older API version, use only if you have a v1 OAuth client
-  - Base URL: `https://www.patreon.com/api/oauth2/api`  
+  - Base URL: `https://api.patreon.com/oauth2/api`  
   - Compatible with older OAuth clients
   - May have limited future support
+  - Uses dedicated `/campaigns/{id}/pledges` endpoint with pagination
 
 **Configuration**: Set the API version in plugin settings (`patreon_donations_api_version`). The plugin will automatically use the correct base URL and handle any differences between the versions.
 
@@ -127,7 +128,7 @@ curl --request GET \
   --header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
 ```
 
-### 2. Get Campaign Members
+### 2. Get Campaign Members (V2)
 
 **Endpoint**: `GET /api/oauth2/v2/campaigns/{campaign_id}/members`
 
@@ -166,6 +167,74 @@ curl --request GET \
   --header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
 ```
 
+### 3. Get Campaign Pledges (V1)
+
+**Endpoint**: `GET /oauth2/api/campaigns/{campaign_id}/pledges`
+
+**Purpose**: Fetch all pledges for a campaign (V1 API)
+
+**Base URL**: `https://api.patreon.com`
+
+**Authentication**: `Authorization: Bearer <access_token>`
+
+**Pagination**:
+- Returns data in pages (typically 20 items per page)
+- Use `links.next` field to get the next page URL
+- Continue fetching until `links.next` is null
+
+**Key Fields Per Pledge**:
+```javascript
+{
+  "data": [{
+    "attributes": {
+      "amount_cents": 400,              // Pledge amount in cents
+      "created_at": "2018-04-01T21:28:06+00:00",
+      "declined_since": null,           // null if active, date if declined
+      "patron_pays_fees": false
+    },
+    "id": "12345678",
+    "type": "pledge"
+  }],
+  "links": {
+    "next": "https://api.patreon.com/oauth2/api/campaigns/1234/pledges?page%5Bcursor%5D=abc123"
+  }
+}
+```
+
+**Example Request**:
+```bash
+curl --request GET \
+  --url 'https://api.patreon.com/oauth2/api/campaigns/CAMPAIGN_ID/pledges' \
+  --header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
+```
+
+**Pagination Example**:
+```ruby
+def fetch_all_pledges(campaign_id)
+  pledges = []
+  endpoint = "/campaigns/#{campaign_id}/pledges"
+  
+  loop do
+    response = make_request(endpoint)
+    pledges.concat(response['data'])
+    
+    next_url = response.dig('links', 'next')
+    break unless next_url
+    
+    # Extract path from next URL (remove base URL)
+    endpoint = extract_path_from_url(next_url)
+  end
+  
+  pledges
+end
+```
+
+**Important Notes**:
+- V1 pledges endpoint provides similar data to V2 members endpoint
+- Use `declined_since` to filter active vs declined pledges
+- Convert pledges to member format for consistency across API versions
+- Pagination is required to fetch all pledges (can have 100+ pages for large campaigns)
+
 ## Data Mapping for Plugin Features
 
 ### 1. Number of Active Subscribers
@@ -190,34 +259,41 @@ members.forEach(member => {
 const monthlyEstimate = totalCents / 100; // Convert to dollars
 ```
 
-### 3. Last Month Total Donation Amount
-**Source**: `GET /api/oauth2/v2/campaigns/{campaign_id}/members`
-- Filter members where:
-  - `last_charge_status === "Paid"`
-  - `last_charge_date` is within the previous calendar month
-- Sum `currently_entitled_amount_cents` for matching members
-- **Note**: This is an approximation since the API doesn't provide historical payment data directly
+### 3. Change from Last Month
+**Source**: Calculated from monthly snapshots (not directly from API)
+- Compares current month's live estimate against last completed month's snapshot
+- Calculation: `current_estimate - last_month_snapshot.total_amount`
+- **Note**: Since the API doesn't provide historical payment data, the plugin stores monthly snapshots in the database
 
 **Algorithm**:
 ```javascript
-const lastMonth = new Date();
-lastMonth.setMonth(lastMonth.getMonth() - 1);
-const startOfLastMonth = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
-const endOfLastMonth = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0);
+// Get current month estimate from live API data
+const currentEstimate = calculateMonthlyEstimate(members);
 
-let lastMonthTotal = 0;
-members.forEach(member => {
-  const chargeDate = new Date(member.attributes.last_charge_date);
-  if (
-    member.attributes.last_charge_status === 'Paid' &&
-    chargeDate >= startOfLastMonth &&
-    chargeDate <= endOfLastMonth
-  ) {
-    lastMonthTotal += member.attributes.currently_entitled_amount_cents;
-  }
-});
-const lastMonthDollars = lastMonthTotal / 100;
+// Get last completed month's snapshot from database
+const lastMonthSnapshot = await getLastCompletedMonthSnapshot(campaignId);
+
+if (!lastMonthSnapshot) {
+  return null; // Show "N/A" - no previous data
+}
+
+// Calculate change
+const change = currentEstimate - lastMonthSnapshot.total_amount;
+
+// Format for display
+if (change > 0) {
+  return `+$${change.toFixed(2)}`; // Green
+} else if (change < 0) {
+  return `-$${Math.abs(change).toFixed(2)}`; // Red
+} else {
+  return "$0.00"; // Neutral
+}
 ```
+
+**Display**:
+- Positive change (growth): `+$23.80` in green
+- Negative change (decline): `-$15.30` in red
+- No previous data: `N/A` in gray (first month only)
 
 ## Important Notes
 

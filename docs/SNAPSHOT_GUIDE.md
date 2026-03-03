@@ -1,6 +1,6 @@
 # Monthly Snapshots
 
-Since Patreon's API doesn't provide historical payment data, the plugin creates monthly snapshots of current patron data.
+Since Patreon's API doesn't provide historical payment data, the plugin creates monthly snapshots of current patron data. These snapshots enable month-over-month comparison to track donation growth or decline.
 
 ## Usage
 
@@ -11,6 +11,14 @@ When first setting up the plugin, create a snapshot for the current month:
 ```bash
 cd /var/www/discourse
 rake patreon_donations:snapshot
+```
+
+### Clear All Historical Data
+
+If you need to remove all snapshots (useful when removing fake backfilled data):
+
+```bash
+rake patreon_donations:clear
 ```
 
 ### View Historical Data
@@ -51,3 +59,20 @@ DiscoursePatreonDonations::PatreonMonthlyStat
 - **Retention**: Keeps most recent 12 months (older records are auto-deleted)
 - **Automatic Sync**: The background job runs hourly and updates the current month snapshot
 - **First Month**: After initial setup, only the current month will show data; previous months will be empty until time passes
+
+## Month-Over-Month Change Tracking
+
+The plugin displays a "Change from Last Month" metric that compares:
+- **Current month's live estimate** (from real-time API data)
+- **Last completed month's snapshot** (from historical data)
+
+**Display Format**:
+- Positive growth: `+$23.80` (shown in green)
+- Negative decline: `-$15.30` (shown in red)
+- No previous data: `N/A` (shown in gray)
+
+**Important**: The change metric will show `N/A` until you have at least one completed month of snapshot data. For example:
+- **March 2026 (first month)**: Shows `N/A` because there's no February snapshot to compare against
+- **April 2026 onwards**: Shows actual month-over-month change comparing current estimate vs previous month's snapshot
+
+This provides a true growth/decline indicator that accounts for patrons joining, leaving, upgrading, or downgrading their pledges.

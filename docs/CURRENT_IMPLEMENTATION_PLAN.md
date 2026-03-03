@@ -129,8 +129,16 @@ export default Route.extend({
 {{! Good: Clean structure }}
 <div class="patreon-stats">
   <div class="stat-card">
-    <h3>Active Subscribers</h3>
-    <p class="stat-value">{{model.patron_count}}</p>
+    <h3>Current Active Subscribers</h3>
+    <p class="stat-value">{{model.stats.patron_count}}</p>
+  </div>
+  <div class="stat-card">
+    <h3>Next Month Estimate</h3>
+    <p class="stat-value">${{model.stats.monthly_estimate}}</p>
+  </div>
+  <div class="stat-card">
+    <h3>Change from Last Month</h3>
+    <p class="stat-value">{{{format-change model.stats.monthly_change}}}</p>
   </div>
 </div>
 ```
@@ -143,13 +151,57 @@ export default Route.extend({
     <div class="patreon-stats-inner">
       <div class="stat-card-container">
         <div class="stat-card">
-          <h3>Active Subscribers</h3>
-          <p>{{model.patron_count}}</p>
+          <h3>Current Active Subscribers</h3>
+          <p>{{model.stats.patron_count}}</p>
         </div>
       </div>
     </div>
   </div>
 </div>
+```
+
+### Handlebar Helpers
+
+#### Custom Helper for Signed Currency Display
+
+```javascript
+// Good: Reusable helper for formatting currency changes
+import { registerUnbound } from "discourse-common/lib/helpers";
+import { htmlSafe } from "@ember/template";
+
+registerUnbound("format-change", function(value) {
+  if (value === null || value === undefined) {
+    return htmlSafe('<span class="change-neutral">N/A</span>');
+  }
+  
+  const numValue = parseFloat(value);
+  if (isNaN(numValue)) {
+    return htmlSafe('<span class="change-neutral">N/A</span>');
+  }
+  
+  const absValue = Math.abs(numValue).toFixed(2);
+  
+  if (numValue > 0) {
+    return htmlSafe(`<span class="change-positive">+$${absValue}</span>`);
+  } else if (numValue < 0) {
+    return htmlSafe(`<span class="change-negative">-$${absValue}</span>`);
+  } else {
+    return htmlSafe('<span class="change-neutral">$0.00</span>');
+  }
+});
+```
+
+#### Custom Helper for Multiplication
+
+```javascript
+// Good: Simple helper for calculations in templates
+import { registerUnbound } from "discourse-common/lib/helpers";
+
+registerUnbound("multiply", function(value, multiplier) {
+  const num = parseFloat(value) || 0;
+  const mult = parseFloat(multiplier) || 0;
+  return (num * mult).toFixed(2);
+});
 ```
 
 ## Common Patterns
@@ -200,6 +252,46 @@ def cache_duration
   SiteSetting.patreon_cache_duration.minutes
 end
 ```
+
+### Monthly Change Tracking
+
+```ruby
+# Calculate month-over-month change by comparing current estimate vs last completed month
+def calculate_monthly_change(current_estimate, monthly_history)
+  return nil if monthly_history.empty?
+
+  current_date = Time.now.utc
+  current_year = current_date.year
+  current_month = current_date.month
+
+  # Find the most recent snapshot that's NOT the current month
+  # (we want last completed month to compare against)
+  last_month_snapshot = monthly_history.reverse.find do |month|
+    month[:year] != current_year || month[:month] != current_month
+  end
+  
+  return nil unless last_month_snapshot
+  
+  # Compare current estimate vs last month's snapshot
+  current_estimate - last_month_snapshot[:total_amount]
+rescue StandardError => e
+  Rails.logger.error("Error calculating monthly change: #{e.message}")
+  nil
+end
+```
+
+**Display in Template**:
+```handlebars
+<div class="stat-card">
+  <h3>Change from Last Month</h3>
+  <p class="stat-value">{{{format-change model.stats.monthly_change}}}</p>
+</div>
+```
+
+**Helper Formatting**:
+- Positive change: `+$23.80` (green)
+- Negative change: `-$15.30` (red)
+- No previous data: `N/A` (gray)
 
 ### Background Jobs
 
@@ -266,6 +358,59 @@ This feature:
 - Saves the campaign ID to site settings
 - Logs success or failure for debugging
 - Gracefully handles errors without breaking the settings page
+
+### Rake Tasks
+
+The plugin provides rake tasks for managing monthly snapshots:
+
+```bash
+# Create/update snapshot for current month
+rake patreon_donations:snapshot
+
+# View all historical snapshots
+rake patreon_donations:status
+
+# Clear all historical data (useful when migrating from fake backfill)
+rake patreon_donations:clear
+```
+
+**Implementation Example**:
+```ruby
+namespace :patreon_donations do
+  desc "Create snapshot for current month"
+  task snapshot: :environment do
+    Rails.cache.delete("patreon_stats:#{SiteSetting.patreon_donations_campaign_id}")
+    result = DiscoursePatreonDonations::PatreonMonthlyStat.snapshot_current_month
+    puts result[:success] ? result[:message] : "Error: #{result[:error]}"
+  end
+
+  desc "Show all monthly snapshots"
+  task status: :environment do
+    campaign_id = SiteSetting.patreon_donations_campaign_id
+    records = DiscoursePatreonDonations::PatreonMonthlyStat
+      .where(campaign_id: campaign_id)
+      .order(year: :desc, month: :desc)
+    
+    if records.empty?
+      puts "No snapshots found. Run 'rake patreon_donations:snapshot' to create one."
+    else
+      records.each do |record|
+        puts "#{record.year}-#{record.month}: #{record.patron_count} patrons, $#{record.total_amount}"
+      end
+    end
+  end
+
+  desc "Clear all monthly snapshots"
+  task clear: :environment do
+    campaign_id = SiteSetting.patreon_donations_campaign_id
+    count = DiscoursePatreonDonations::PatreonMonthlyStat
+      .where(campaign_id: campaign_id)
+      .delete_all
+    Rails.cache.delete("patreon_stats:#{campaign_id}")
+    puts "Deleted #{count} snapshot(s) and cleared cache"
+  end
+end
+```
 
 ## Testing
 
@@ -426,19 +571,47 @@ end
 ### Pagination Handling
 
 ```ruby
+# Good: Complete pagination for V1 API
 def fetch_all_members(campaign_id)
   members = []
-  cursor = nil
+  endpoint = "/campaigns/#{campaign_id}/pledges"
+  page = 0
+  max_pages = 20 # Safety limit
   
   loop do
-    response = fetch_members_page(campaign_id, cursor)
-    members.concat(response[:data])
+    page += 1
+    break if page > max_pages
     
-    cursor = response.dig(:meta, :pagination, :cursors, :next)
-    break if cursor.nil?
+    response = make_request(endpoint)
+    members.concat(response['data'])
+    
+    next_url = response.dig('links', 'next')
+    break unless next_url
+    
+    # Extract path from next URL (remove base URL)
+    endpoint = extract_path_from_url(next_url)
+    Rails.logger.warn("Fetching page #{page}, total so far: #{members.count}")
   end
   
+  Rails.logger.warn("Total fetched: #{members.count}")
   members
+end
+
+private
+
+def extract_path_from_url(url)
+  return nil unless url
+  
+  uri = URI.parse(url)
+  path = uri.path
+  
+  # Remove the API base path if it's included
+  path = path.sub(%r{^/api/oauth2/api}, '')
+  path = path.sub(%r{^/oauth2/api}, '')
+  
+  # Add query string if present
+  path += "?#{uri.query}" if uri.query
+  path
 end
 ```
 
