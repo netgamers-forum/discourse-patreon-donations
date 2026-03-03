@@ -10,7 +10,7 @@ module DiscoursePatreonDonations
     validates :patron_count, presence: true, numericality: { greater_than_or_equal_to: 0 }
     validates :total_amount_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
 
-    def self.record_monthly_snapshot(campaign_id, patron_count, total_amount_cents, date = Time.now.utc)
+    def self.record_monthly_snapshot(campaign_id, patron_count, total_amount_cents, date = Time.now.utc, platform_fee_percentage: nil, tax_rate_percentage: nil)
       year = date.year
       month = date.month
 
@@ -22,6 +22,8 @@ module DiscoursePatreonDonations
 
       stat.patron_count = patron_count
       stat.total_amount_cents = total_amount_cents
+      stat.platform_fee_percentage = platform_fee_percentage
+      stat.tax_rate_percentage = tax_rate_percentage
       stat.save!
 
       cleanup_old_records(campaign_id)
@@ -63,7 +65,14 @@ module DiscoursePatreonDonations
         month = now.month
 
         # Create or update only the current month
-        stat = record_monthly_snapshot(campaign_id, current_patron_count, current_amount_cents, now)
+        stat = record_monthly_snapshot(
+          campaign_id,
+          current_patron_count,
+          current_amount_cents,
+          now,
+          platform_fee_percentage: SiteSetting.patreon_donations_platform_fee_percentage,
+          tax_rate_percentage: SiteSetting.patreon_donations_tax_rate_percentage
+        )
 
         Rails.logger.info("Created/updated current month snapshot for campaign #{campaign_id}: #{current_patron_count} patrons, $#{current_amount_cents / 100.0}")
         { success: true, message: "Snapshot created for #{year}-#{month}: #{current_patron_count} patrons, $#{current_amount_cents / 100.0}" }
@@ -77,13 +86,21 @@ module DiscoursePatreonDonations
       total_amount_cents / 100.0
     end
 
+    def net_amount
+      return nil unless platform_fee_percentage && tax_rate_percentage
+
+      after_fee = total_amount * (1 - platform_fee_percentage / 100.0)
+      after_fee * (1 - tax_rate_percentage / 100.0)
+    end
+
     def to_h
       {
         year: year,
         month: month,
         patron_count: patron_count,
         total_amount: total_amount,
-        total_amount_cents: total_amount_cents
+        total_amount_cents: total_amount_cents,
+        net_amount: net_amount
       }
     end
   end

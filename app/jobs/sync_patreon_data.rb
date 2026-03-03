@@ -71,7 +71,9 @@ module ::Jobs
         campaign_id,
         stats[:patron_count],
         total_amount_cents,
-        now
+        now,
+        platform_fee_percentage: SiteSetting.patreon_donations_platform_fee_percentage,
+        tax_rate_percentage: SiteSetting.patreon_donations_tax_rate_percentage
       )
 
       Rails.logger.info("Recorded monthly snapshot for campaign #{campaign_id}: #{stats[:patron_count]} patrons, #{stats[:monthly_estimate]}")
