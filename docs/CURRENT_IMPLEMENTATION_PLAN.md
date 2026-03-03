@@ -669,129 +669,29 @@ When implementing a new feature:
 
 Each commit is small, focused, and can be reviewed independently.
 
+## Completed Milestones
+
+The following have been completed and tested on the staging environment:
+
+- **Database Migration** - Consolidated migration creating `patreon_cache` and `patreon_monthly_stats` tables
+- **Core Backend** - All services (PatreonApiClient, PatreonStatsCalculator, PatreonCampaignDiscovery), controller, model, and background job
+- **Frontend** - Ember route, template, helpers (format-change, month-name, multiply), SCSS styling
+- **Patreon API Integration** - Dual v1/v2 support with pagination, tested against live Patreon API
+- **OAuth Configuration** - Credentials configured and working in staging
+- **Monthly Snapshots** - Recording current month data, rake tasks for manual management
+- **Staging Deployment** - Plugin deployed, data syncing, UI rendering correctly
+
+Testing strategy: manual testing on staging environment (no automated test suite).
+
 ## Next Steps
 
-Now that the initial plugin structure is complete, the following steps remain:
+### 1. UI and Configuration Improvements
 
-### 1. Add Database Migration ✓ COMPLETED
+#### 1.1. Align Historical Data Table Columns
 
-A single consolidated migration creates both required tables:
+The monthly history table needs proper column alignment for better readability.
 
-**File**: `db/migrate/20260302000001_create_patreon_tables.rb`
-
-**Tables Created**:
-
-#### patreon_cache - Current Statistics Cache
-- `campaign_id` (string, not null) - Patreon campaign identifier
-- `data` (text, not null) - JSON-serialized current stats data
-- `last_synced_at` (datetime) - Timestamp of last sync
-- `created_at`, `updated_at` (timestamps) - Rails standard timestamps
-- Unique index on `campaign_id`
-
-#### patreon_monthly_stats - Historical Monthly Data
-- `campaign_id` (string, not null) - Patreon campaign identifier
-- `year` (integer, not null) - Year of the snapshot
-- `month` (integer, not null) - Month of the snapshot (1-12)
-- `patron_count` (integer, not null) - Number of patrons that month
-- `total_amount_cents` (integer, not null) - Total monthly pledges in cents
-- `created_at`, `updated_at` (timestamps) - Rails standard timestamps
-- Unique index on `(campaign_id, year, month)` - Prevents duplicate monthly records
-- Index on `campaign_id` for efficient queries
-
-**Running the migration in Discourse**:
-
-When you install or update the plugin, Discourse will automatically run pending migrations during the rebuild process:
-
-```bash
-cd /var/discourse
-./launcher rebuild app
-```
-
-For development environments:
-
-```bash
-# From Discourse root directory
-bundle exec rake db:migrate
-```
-
-To verify the migrations ran successfully:
-
-```bash
-# Rails console
-rails c
-# Check if tables exist
-ActiveRecord::Base.connection.table_exists?(:patreon_cache)
-# => true
-ActiveRecord::Base.connection.table_exists?(:patreon_monthly_stats)
-# => true
-```
-
-**Features**:
-- Automatically records monthly snapshots during sync job
-- Stores last 12 months of data (older records auto-deleted)
-- Provides historical data for trend analysis and charting
-- Accessible via `/patreon-stats.json` API endpoint
-
-**Model**: `PatreonMonthlyStat` provides methods:
-- `record_monthly_snapshot(campaign_id, patron_count, total_amount_cents, date)` - Create or update monthly record
-- `last_12_months(campaign_id)` - Retrieve 12 most recent months
-- `cleanup_old_records(campaign_id, keep_months)` - Remove old data beyond retention period
-
-### 2. Write Tests
-
-Write comprehensive tests for services and controllers:
-
-**Service Tests**:
-- `spec/services/patreon_api_client_spec.rb` - Test API client methods, error handling, pagination
-- `spec/services/patreon_stats_calculator_spec.rb` - Test stat calculations with various scenarios
-- `spec/models/patreon_cache_spec.rb` - Test cache model methods and expiration logic
-
-**Controller Tests**:
-- `spec/requests/patreon_stats_controller_spec.rb` - Test HTTP endpoints, caching, error responses
-
-**Job Tests**:
-- `spec/jobs/sync_patreon_data_spec.rb` - Test background job execution and scheduling
-
-### 3. Test in Development Discourse Instance
-
-Deploy and test the plugin in a local Discourse development environment:
-
-1. Clone Discourse repository
-2. Symlink plugin to `plugins/` directory
-3. Run database migrations
-4. Start Discourse server
-5. Configure OAuth credentials in admin settings
-6. Access `/patreon-stats` route
-7. Verify stats display correctly
-8. Monitor background job execution
-9. Test error scenarios (invalid credentials, API failures)
-
-### 4. Configure OAuth Credentials
-
-Set up Patreon OAuth application and configure credentials:
-
-1. Register application at: https://www.patreon.com/portal/registration/register-clients
-2. Note Client ID and Client Secret
-3. Complete OAuth flow to obtain Creator Access Token and Refresh Token
-4. In Discourse admin settings (`/admin/site_settings/category/patreon`):
-   - Enable Patreon integration
-   - Enter Client ID
-   - Enter Client Secret
-   - Enter Creator Access Token
-   - Enter Creator Refresh Token
-   - Enter Campaign ID
-   - Configure cache duration (default: 30 minutes)
-   - Configure sync frequency (default: 24 hours)
-
-### 5. UI and Configuration Improvements
-
-**Priority improvements for the current implementation:**
-
-#### 5.1. Align Historical Data Table Columns
-
-The monthly history table needs proper column alignment for better readability:
-
-**Current Issue**: Column titles and row content may not be properly aligned
+**Current Issue**: Column titles and row content may not be properly aligned.
 
 **Implementation**:
 ```scss
@@ -800,11 +700,11 @@ The monthly history table needs proper column alignment for better readability:
   table {
     width: 100%;
     border-collapse: collapse;
-    
+
     th, td {
       text-align: left;
       padding: 0.75rem 1rem;
-      
+
       &:nth-child(2), // Patrons column
       &:nth-child(3)  // Total Amount column
       {
@@ -837,9 +737,9 @@ The monthly history table needs proper column alignment for better readability:
 </table>
 ```
 
-#### 5.2. Make Revenue Breakdown Percentages Configurable
+#### 1.2. Make Revenue Breakdown Percentages Configurable
 
-Currently, Patreon fee (10%) and tax rate (43%) are hardcoded. Make them configurable site settings:
+Currently, Patreon fee (10%) and tax rate (43%) are hardcoded. Make them configurable site settings.
 
 **Settings Addition** (`config/settings.yml`):
 ```yaml
@@ -850,7 +750,7 @@ patreon_donations:
     max: 100
     type: float
     description: "Patreon platform fee percentage (default: 10%)"
-  
+
   patreon_donations_tax_rate_percentage:
     default: 43.0
     min: 0
@@ -872,12 +772,12 @@ patreon_donations:
     <span class="breakdown-label">Subtotal after Patreon:</span>
     <span class="breakdown-value">${{afterPlatformFee}}</span>
   </div>
-  
+
   <div class="breakdown-row deduction">
     <span class="breakdown-label">Less taxes ({{siteSettings.patreon_donations_tax_rate_percentage}}%):</span>
     <span class="breakdown-value">-${{multiply afterPlatformFee (divide siteSettings.patreon_donations_tax_rate_percentage 100)}}</span>
   </div>
-  
+
   <div class="breakdown-row total">
     <span class="breakdown-label">Net income available:</span>
     <span class="breakdown-value">${{multiply afterPlatformFee (subtract 1 (divide siteSettings.patreon_donations_tax_rate_percentage 100))}}</span>
@@ -911,9 +811,9 @@ registerUnbound("subtract", function(value, subtrahend) {
 - No code changes needed to update percentages
 - Accurate representation of actual financial breakdown
 
-#### 5.3. Add Group-Based Access Control
+#### 1.3. Add Group-Based Access Control
 
-Make the stats page visible only to specific Discourse groups (admins by default):
+Make the stats page visible only to specific Discourse groups (admins by default).
 
 **Settings Addition** (`config/settings.yml`):
 ```yaml
@@ -942,8 +842,8 @@ class PatreonStatsController < ::ApplicationController
 
     if stats
       monthly_change = calculate_monthly_change(stats[:monthly_estimate], monthly_history)
-      
-      render json: { 
+
+      render json: {
         stats: stats.merge(monthly_change: monthly_change),
         monthly_history: monthly_history
       }
@@ -957,7 +857,7 @@ class PatreonStatsController < ::ApplicationController
   def ensure_authorized
     allowed_group_names = SiteSetting.patreon_donations_allowed_groups.split('|')
     user_groups = current_user.groups.pluck(:name)
-    
+
     unless current_user.admin? || (allowed_group_names & user_groups).any?
       raise Discourse::InvalidAccess.new(
         'You do not have permission to view Patreon statistics',
@@ -1010,15 +910,89 @@ en:
 - Prevents unauthorized access to sensitive donation information
 - Works with Discourse's existing group system
 
-### 6. Additional Enhancements (Future Iterations)
+### 2. Token Refresh and Exponential Backoff
 
-Consider these improvements for future iterations:
+#### 2.1. Automatic Token Refresh
 
-- Add token refresh logic in API client
-- Implement exponential backoff for rate limits
-- Create admin dashboard widgets for quick stats view
-- Add data export to CSV functionality
-- Implement webhook support for real-time updates
-- Add email notifications for milestone achievements
-- Add patron tier breakdown charts
-- Implement forecasting based on historical trends
+Add OAuth token refresh logic to `PatreonApiClient` so expired access tokens are automatically renewed using the refresh token.
+
+**Implementation** (`app/services/patreon_api_client.rb`):
+```ruby
+def refresh_access_token
+  uri = URI("https://www.patreon.com/api/oauth2/token")
+  request = Net::HTTP::Post.new(uri)
+  request.set_form_data(
+    grant_type: "refresh_token",
+    refresh_token: SiteSetting.patreon_donations_creator_refresh_token,
+    client_id: SiteSetting.patreon_donations_client_id,
+    client_secret: SiteSetting.patreon_donations_client_secret
+  )
+
+  response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+    http.request(request)
+  end
+
+  if response.is_a?(Net::HTTPSuccess)
+    data = JSON.parse(response.body)
+    SiteSetting.patreon_donations_creator_access_token = data["access_token"]
+    SiteSetting.patreon_donations_creator_refresh_token = data["refresh_token"] if data["refresh_token"]
+    Rails.logger.info("Patreon access token refreshed successfully")
+    true
+  else
+    Rails.logger.error("Failed to refresh Patreon token: #{response.code} #{response.body}")
+    false
+  end
+rescue StandardError => e
+  Rails.logger.error("Error refreshing Patreon token: #{e.message}")
+  false
+end
+```
+
+**Integration**: On 401 response, call `refresh_access_token` and retry the original request once. If refresh also fails, log the error and return nil.
+
+#### 2.2. Exponential Backoff for Rate Limits
+
+Add retry logic with exponential backoff when receiving 429 (Too Many Requests) responses.
+
+**Implementation** (`app/services/patreon_api_client.rb`):
+```ruby
+MAX_RETRIES = 3
+BASE_DELAY = 2 # seconds
+
+def make_request_with_backoff(uri, retry_count = 0)
+  response = make_single_request(uri)
+
+  case response
+  when Net::HTTPTooManyRequests
+    if retry_count < MAX_RETRIES
+      delay = BASE_DELAY ** (retry_count + 1) # 2s, 4s, 8s
+      retry_after = response["Retry-After"]&.to_i
+      wait_time = [delay, retry_after || 0].max
+
+      Rails.logger.warn("Patreon rate limited, retrying in #{wait_time}s (attempt #{retry_count + 1}/#{MAX_RETRIES})")
+      sleep(wait_time)
+      make_request_with_backoff(uri, retry_count + 1)
+    else
+      Rails.logger.error("Patreon rate limit exceeded after #{MAX_RETRIES} retries")
+      nil
+    end
+  when Net::HTTPUnauthorized
+    if retry_count == 0 && refresh_access_token
+      Rails.logger.info("Retrying request after token refresh")
+      make_request_with_backoff(uri, retry_count + 1)
+    else
+      Rails.logger.error("Patreon unauthorized after token refresh attempt")
+      nil
+    end
+  else
+    response
+  end
+end
+```
+
+**Key behaviors**:
+- Retries up to 3 times on 429 responses
+- Delays: 2s, 4s, 8s (exponential)
+- Respects `Retry-After` header from Patreon if present
+- On 401, attempts one token refresh then retries
+- Logs each retry attempt for debugging
