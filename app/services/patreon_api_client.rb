@@ -241,41 +241,113 @@ module DiscoursePatreonDonations
       end
     end
 
-    def make_request(endpoint, params = {})
+    MAX_RETRIES = 3
+    BASE_DELAY = 2
+
+    def make_request(endpoint, params = {}, retry_count: 0)
       uri = build_uri(endpoint, params)
-      
-      # Follow redirects (up to 5 times)
-      redirect_limit = 5
-      redirect_count = 0
-      
-      loop do
-        request = build_request(uri)
-        
-        response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') do |http|
-          http.request(request)
-        end
-        
-        case response
-        when Net::HTTPSuccess
-          return handle_response(response)
-        when Net::HTTPRedirection
-          redirect_count += 1
-          if redirect_count > redirect_limit
-            Rails.logger.error("Patreon API: Too many redirects (>#{redirect_limit})")
-            return nil
-          end
-          
-          location = response['location']
-          Rails.logger.info("Patreon API: Following redirect to #{location}")
-          uri = URI(location)
+      response = make_http_request(uri)
+
+      case response
+      when Net::HTTPSuccess
+        handle_response(response)
+      when Net::HTTPUnauthorized
+        if retry_count == 0 && refresh_access_token
+          Rails.logger.info("Patreon API: Retrying request after token refresh")
+          make_request(endpoint, params, retry_count: retry_count + 1)
         else
-          return handle_response(response)
+          handle_response(response)
         end
+      when Net::HTTPTooManyRequests
+        if retry_count < MAX_RETRIES
+          retry_after = response['Retry-After']&.to_i
+          delay = [BASE_DELAY ** (retry_count + 1), retry_after || 0].max
+          Rails.logger.warn("Patreon API: Rate limited, retrying in #{delay}s (attempt #{retry_count + 1}/#{MAX_RETRIES})")
+          sleep(delay)
+          make_request(endpoint, params, retry_count: retry_count + 1)
+        else
+          handle_response(response)
+        end
+      else
+        handle_response(response)
       end
     rescue StandardError => e
       Rails.logger.error("Patreon API error: #{e.class} - #{e.message}")
       Rails.logger.error(e.backtrace.join("\n")) if Rails.env.development?
       nil
+    end
+
+    def make_http_request(uri)
+      redirect_limit = 5
+      redirect_count = 0
+
+      loop do
+        request = build_request(uri)
+
+        response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') do |http|
+          http.request(request)
+        end
+
+        case response
+        when Net::HTTPRedirection
+          redirect_count += 1
+          if redirect_count > redirect_limit
+            Rails.logger.error("Patreon API: Too many redirects (>#{redirect_limit})")
+            return response
+          end
+
+          location = response['location']
+          Rails.logger.info("Patreon API: Following redirect to #{location}")
+          uri = URI(location)
+        else
+          return response
+        end
+      end
+    end
+
+    def refresh_access_token
+      refresh_token = SiteSetting.patreon_donations_creator_refresh_token
+      client_id = SiteSetting.patreon_donations_client_id
+      client_secret = SiteSetting.patreon_donations_client_secret
+
+      if refresh_token.blank? || client_id.blank? || client_secret.blank?
+        Rails.logger.error("Patreon API: Cannot refresh token - missing refresh_token, client_id, or client_secret")
+        return false
+      end
+
+      Rails.logger.info("Patreon API: Attempting token refresh")
+
+      uri = URI("https://www.patreon.com/api/oauth2/token")
+      request = Net::HTTP::Post.new(uri)
+      request.set_form_data(
+        grant_type: "refresh_token",
+        refresh_token: refresh_token,
+        client_id: client_id,
+        client_secret: client_secret
+      )
+
+      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+        http.request(request)
+      end
+
+      if response.is_a?(Net::HTTPSuccess)
+        data = JSON.parse(response.body)
+        SiteSetting.patreon_donations_creator_access_token = data["access_token"]
+        @access_token = data["access_token"]
+
+        if data["refresh_token"].present?
+          SiteSetting.patreon_donations_creator_refresh_token = data["refresh_token"]
+        end
+
+        Rails.logger.info("Patreon API: Access token refreshed successfully")
+        true
+      else
+        Rails.logger.error("Patreon API: Token refresh failed - HTTP #{response.code}: #{response.body[0..200]}")
+        false
+      end
+    rescue StandardError => e
+      Rails.logger.error("Patreon API: Token refresh error - #{e.message}")
+      false
     end
 
     def build_uri(endpoint, params)
