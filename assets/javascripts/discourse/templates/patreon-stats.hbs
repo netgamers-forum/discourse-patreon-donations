@@ -73,7 +73,7 @@
                   <tr>
                     <td>{{month-name record.month}} {{record.year}}</td>
                     <td>{{record.patron_count}}</td>
-                    <td>${{record.total_amount}}</td>
+                    <td>${{multiply record.total_amount 1}}</td>
                   </tr>
                 {{/each}}
               </tbody>
