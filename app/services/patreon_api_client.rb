@@ -123,6 +123,13 @@ module DiscoursePatreonDonations
       end
       
       Rails.logger.info("V1 API - Campaign attributes: #{campaign&.dig('attributes')&.keys&.join(', ')}")
+      
+      # Log full attributes for debugging
+      if campaign
+        attrs = campaign['attributes'] || {}
+        Rails.logger.info("V1 API - Campaign full attributes: #{attrs.inspect}")
+      end
+      
       campaign
     end
 
