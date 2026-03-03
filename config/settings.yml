@@ -39,6 +39,11 @@ patreon_donations:
     max: 100
     type: float
     client: true
+  patreon_donations_allowed_groups:
+    type: group_list
+    default: "admins"
+    list_type: compact
+    client: true
   patreon_donations_cache_duration:
     default: 30
     min: 5

@@ -4,3 +4,4 @@ en:
       title: "Patreon Donation Summary"
       error:
         fetch_failed: "Unable to fetch Patreon statistics. Please try again later."
+        not_authorized: "You do not have permission to view this page. Contact an administrator if you believe this is an error."

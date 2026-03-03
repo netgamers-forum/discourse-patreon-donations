@@ -2,6 +2,8 @@
 
 class PatreonStatsController < ::ApplicationController
   requires_plugin 'discourse-patreon-donations'
+  before_action :ensure_logged_in
+  before_action :ensure_authorized
 
   def show
     Rails.logger.info("PatreonStatsController#show - Plugin enabled: #{SiteSetting.patreon_donations_enabled}")
@@ -31,6 +33,19 @@ class PatreonStatsController < ::ApplicationController
   end
 
   private
+
+  def ensure_authorized
+    allowed_group_names = SiteSetting.patreon_donations_allowed_groups.split('|')
+    user_groups = current_user.groups.pluck(:name)
+
+    unless current_user.admin? || (allowed_group_names & user_groups).any?
+      raise Discourse::InvalidAccess.new(
+        I18n.t('patreon_stats.error.not_authorized'),
+        nil,
+        custom_message: 'patreon_stats.error.not_authorized'
+      )
+    end
+  end
 
   def fetch_cached_stats
     Rails.cache.fetch(cache_key, expires_in: cache_duration) do
