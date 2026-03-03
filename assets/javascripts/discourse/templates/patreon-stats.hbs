@@ -1,14 +1,6 @@
 <div class="patreon-stats-page">
   <h1>Patreon Campaign Statistics</h1>
   
-  {{! Debug output }}
-  <div style="background: yellow; padding: 10px; margin: 10px 0;">
-    <strong>Debug:</strong><br>
-    model.stats = {{model.stats}}<br>
-    patron_count = {{model.stats.patron_count}}<br>
-    monthly_estimate = {{model.stats.monthly_estimate}}<br>
-  </div>
-  
   {{#if model.error}}
     <div class="patreon-stats-error">
       <p class="error-message">⚠️ {{model.message}}</p>
