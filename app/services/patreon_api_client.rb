@@ -142,50 +142,40 @@ module DiscoursePatreonDonations
     end
 
     def fetch_members_v1
-      # V1 API doesn't have a separate members endpoint
-      # Instead, we get pledges via the campaign endpoint with includes
+      # V1 API has a dedicated pledges endpoint that supports pagination
+      return [] if @campaign_id.blank?
+      
       all_pledges = []
-      cursor = nil
+      page_url = "/campaigns/#{@campaign_id}/pledges"
       page = 1
       
       loop do
-        endpoint = '/current_user/campaigns'
-        params = { 
-          'include' => 'pledges',
-          'page[count]' => '100'
-        }
-        params['page[cursor]'] = cursor if cursor
+        Rails.logger.warn("V1 API - Fetching pledges page #{page} from: #{page_url}")
         
-        response = make_request(endpoint, params)
+        response = make_request(page_url, {})
         break unless response
         
-        Rails.logger.warn("V1 API - Page #{page}: Included items: #{response['included']&.length || 0}")
+        Rails.logger.warn("V1 API - Page #{page}: Response data count: #{response['data']&.length || 0}")
         
-        # Extract pledges from included array
-        page_pledges = []
-        if response['included']
-          response['included'].each do |item|
-            page_pledges << item if item['type'] == 'pledge'
-          end
-        end
-        
+        # V1 pledges endpoint returns pledges directly in 'data' array
+        page_pledges = response['data'] || []
         all_pledges.concat(page_pledges)
+        
         Rails.logger.warn("V1 API - Page #{page}: Found #{page_pledges.length} pledges (total: #{all_pledges.length})")
         
-        # Check for next page
+        # Check for next page in links
         next_link = response.dig('links', 'next')
-        Rails.logger.warn("V1 API - Next link: #{next_link}")
-        break unless next_link
+        Rails.logger.warn("V1 API - Next link: #{next_link.inspect}")
+        break unless next_link.present?
         
-        # Extract cursor from next link
-        next_cursor = extract_cursor_from_url(next_link)
-        break if next_cursor.nil? || next_cursor == cursor
+        # The next link is a full URL, we need just the path and query
+        page_url = extract_path_from_url(next_link)
+        break unless page_url
         
-        cursor = next_cursor
         page += 1
         
         # Safety limit to prevent infinite loops
-        break if page > 10
+        break if page > 20
       end
       
       Rails.logger.warn("V1 API - Total pledges fetched: #{all_pledges.length}")
@@ -196,15 +186,15 @@ module DiscoursePatreonDonations
       members
     end
 
-    def extract_cursor_from_url(url)
+    def extract_path_from_url(url)
       return nil unless url
       
       uri = URI.parse(url)
-      params = URI.decode_www_form(uri.query || '')
-      cursor_param = params.find { |k, v| k == 'page[cursor]' }
-      cursor_param ? cursor_param[1] : nil
+      path_and_query = uri.path
+      path_and_query += "?#{uri.query}" if uri.query
+      path_and_query
     rescue StandardError => e
-      Rails.logger.error("Failed to extract cursor from URL: #{e.message}")
+      Rails.logger.error("Failed to extract path from URL: #{e.message}")
       nil
     end
     
