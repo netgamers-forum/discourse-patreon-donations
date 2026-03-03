@@ -1,6 +1,6 @@
 en:
   js:
     patreon_stats:
-      title: "Patreon Campaign Statistics"
+      title: "Patreon Donation Summary"
       error:
         fetch_failed: "Unable to fetch Patreon statistics. Please try again later."

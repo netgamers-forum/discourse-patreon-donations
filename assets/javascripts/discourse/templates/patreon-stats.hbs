@@ -1,5 +1,5 @@
 <div class="patreon-stats-page">
-  <h1>Patreon Campaign Statistics</h1>
+  <h1>Patreon Donation Summary</h1>
   
   {{#if model.error}}
     <div class="patreon-stats-error">
@@ -11,18 +11,18 @@
   {{#if model.stats}}
     <div class="patreon-stats-container">
       <div class="stat-card">
-        <h3>Active Subscribers</h3>
+        <h3>Current Active Subscribers</h3>
         <p class="stat-value">{{model.stats.patron_count}}</p>
       </div>
       
       <div class="stat-card">
-        <h3>Monthly Estimate</h3>
+        <h3>Next Month Estimate</h3>
         <p class="stat-value">${{model.stats.monthly_estimate}}</p>
       </div>
       
       <div class="stat-card">
-        <h3>Last Month Total</h3>
-        <p class="stat-value">${{model.stats.last_month_total}}</p>
+        <h3>Change from Last Month</h3>
+        <p class="stat-value">{{{format-change model.stats.monthly_change}}}</p>
       </div>
     </div>
     
@@ -32,7 +32,7 @@
         <p class="breakdown-note">Understanding the actual income available for expenses:</p>
         <div class="breakdown-table">
           <div class="breakdown-row">
-            <span class="breakdown-label">Gross monthly revenue:</span>
+            <span class="breakdown-label">Estimated next month revenue:</span>
             <span class="breakdown-value">${{model.stats.monthly_estimate}}</span>
           </div>
           <div class="breakdown-row deduction">

@@ -19,8 +19,10 @@ class PatreonStatsController < ::ApplicationController
     Rails.logger.info("PatreonStatsController#show - Stats: #{stats.inspect}")
     
     if stats
+      monthly_change = calculate_monthly_change(stats[:monthly_estimate], monthly_history)
+      
       render json: { 
-        stats: stats,
+        stats: stats.merge(monthly_change: monthly_change),
         monthly_history: monthly_history
       }
     else
@@ -48,6 +50,31 @@ class PatreonStatsController < ::ApplicationController
   rescue StandardError => e
     Rails.logger.error("Error fetching monthly history: #{e.message}")
     []
+  end
+
+  def calculate_monthly_change(current_estimate, monthly_history)
+    return nil if monthly_history.empty?
+
+    current_date = Time.now.utc
+    current_year = current_date.year
+    current_month = current_date.month
+
+    # Find the most recent snapshot that's NOT the current month
+    # (we want last completed month to compare against)
+    last_month_snapshot = monthly_history.reverse.find do |month|
+      month[:year] != current_year || month[:month] != current_month
+    end
+    
+    return nil unless last_month_snapshot
+    
+    # Compare current estimate vs last month's snapshot
+    change = current_estimate - last_month_snapshot[:total_amount]
+    
+    Rails.logger.info("Monthly change: $#{current_estimate} (current estimate) - $#{last_month_snapshot[:total_amount]} (#{last_month_snapshot[:year]}-#{last_month_snapshot[:month]} snapshot) = $#{change}")
+    change
+  rescue StandardError => e
+    Rails.logger.error("Error calculating monthly change: #{e.message}")
+    nil
   end
 
   def calculate_fresh_stats
