@@ -190,9 +190,17 @@ module DiscoursePatreonDonations
       return nil unless url
       
       uri = URI.parse(url)
-      path_and_query = uri.path
-      path_and_query += "?#{uri.query}" if uri.query
-      path_and_query
+      path = uri.path
+      
+      # Remove the base path if it's included (v1: /oauth2/api, v2: /api/oauth2/v2)
+      path = path.sub(%r{^/oauth2/api}, '') if @api_version == 'v1'
+      path = path.sub(%r{^/api/oauth2/v2}, '') if @api_version == 'v2'
+      
+      # Add query string if present
+      path += "?#{uri.query}" if uri.query
+      
+      Rails.logger.warn("V1 API - Extracted path from next URL: #{path}")
+      path
     rescue StandardError => e
       Rails.logger.error("Failed to extract path from URL: #{e.message}")
       nil
