@@ -14,6 +14,7 @@ export default {
       api.addCommunitySectionLink({
         name: "patreon-stats",
         route: "patreon-stats",
+        icon: "dollar-sign",
         text: "Patreon Statistics",
         title: "View Patreon campaign statistics"
       });
