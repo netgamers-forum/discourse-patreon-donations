@@ -119,6 +119,7 @@ class PatreonStatsController < ::ApplicationController
       patron_count: calculator.patron_count,
       monthly_estimate: calculator.monthly_estimate,
       last_month_total: calculator.last_month_total,
+      currency: calculator.currency,
       updated_at: Time.now.utc
     }
   rescue StandardError => e

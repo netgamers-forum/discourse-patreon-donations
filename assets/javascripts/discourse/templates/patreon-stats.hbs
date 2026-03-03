@@ -1,31 +1,31 @@
 <div class="patreon-stats-page">
   <h1>Patreon Donation Summary</h1>
-  
+
   {{#if model.error}}
     <div class="patreon-stats-error">
       <p class="error-message">⚠️ {{model.message}}</p>
       <p>Please check the Discourse logs for more details or contact an administrator.</p>
     </div>
   {{/if}}
-  
+
   {{#if model.stats}}
     <div class="patreon-stats-container">
       <div class="stat-card">
         <h3>Current Active Subscribers</h3>
         <p class="stat-value">{{model.stats.patron_count}}</p>
       </div>
-      
+
       <div class="stat-card">
         <h3>Next Month Estimate</h3>
-        <p class="stat-value">${{multiply model.stats.monthly_estimate 1}}</p>
+        <p class="stat-value">{{model.stats.currency}} {{multiply model.stats.monthly_estimate 1}}</p>
       </div>
-      
+
       <div class="stat-card">
         <h3>Change from Last Month</h3>
         <p class="stat-value">{{{format-change model.stats.monthly_change}}}</p>
       </div>
     </div>
-    
+
     <div class="patreon-breakdown">
       <h3>Revenue Breakdown</h3>
       <div class="breakdown-content">
@@ -33,28 +33,28 @@
         <div class="breakdown-table">
           <div class="breakdown-row">
             <span class="breakdown-label">Estimated next month revenue:</span>
-            <span class="breakdown-value">${{multiply model.stats.monthly_estimate 1}}</span>
+            <span class="breakdown-value">{{model.stats.currency}} {{multiply model.stats.monthly_estimate 1}}</span>
           </div>
           <div class="breakdown-row deduction">
             <span class="breakdown-label">Less Patreon fee ({{siteSettings.patreon_donations_platform_fee_percentage}}%):</span>
-            <span class="breakdown-value">-${{multiply model.stats.monthly_estimate (divide siteSettings.patreon_donations_platform_fee_percentage 100)}}</span>
+            <span class="breakdown-value">-{{model.stats.currency}} {{multiply model.stats.monthly_estimate (divide siteSettings.patreon_donations_platform_fee_percentage 100)}}</span>
           </div>
           <div class="breakdown-row subtotal">
             <span class="breakdown-label">Subtotal after Patreon:</span>
-            <span class="breakdown-value">${{multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))}}</span>
+            <span class="breakdown-value">{{model.stats.currency}} {{multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))}}</span>
           </div>
           <div class="breakdown-row deduction">
             <span class="breakdown-label">Less taxes ({{siteSettings.patreon_donations_tax_rate_percentage}}%):</span>
-            <span class="breakdown-value">-${{multiply (multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))) (divide siteSettings.patreon_donations_tax_rate_percentage 100)}}</span>
+            <span class="breakdown-value">-{{model.stats.currency}} {{multiply (multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))) (divide siteSettings.patreon_donations_tax_rate_percentage 100)}}</span>
           </div>
           <div class="breakdown-row total">
             <span class="breakdown-label">Net income available ({{subtract 100 siteSettings.patreon_donations_tax_rate_percentage}}%):</span>
-            <span class="breakdown-value">${{multiply (multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))) (subtract 1 (divide siteSettings.patreon_donations_tax_rate_percentage 100))}}</span>
+            <span class="breakdown-value">{{model.stats.currency}} {{multiply (multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))) (subtract 1 (divide siteSettings.patreon_donations_tax_rate_percentage 100))}}</span>
           </div>
         </div>
       </div>
     </div>
-    
+
     {{#if model.monthly_history}}
       <div class="patreon-monthly-history">
         <h2>Monthly History (Last 12 Months)</h2>
@@ -73,7 +73,7 @@
                   <tr>
                     <td>{{month-name record.month}} {{record.year}}</td>
                     <td>{{record.patron_count}}</td>
-                    <td>${{multiply record.total_amount 1}}</td>
+                    <td>{{model.stats.currency}} {{multiply record.total_amount 1}}</td>
                   </tr>
                 {{/each}}
               </tbody>

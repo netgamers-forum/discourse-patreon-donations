@@ -11,6 +11,10 @@ module DiscoursePatreonDonations
       @campaign_data&.dig('attributes', 'patron_count') || 0
     end
 
+    def currency
+      @campaign_data&.dig('attributes', 'currency') || 'USD'
+    end
+
     def monthly_estimate
       total_cents = active_members.sum { |m| entitled_amount(m) }
 
