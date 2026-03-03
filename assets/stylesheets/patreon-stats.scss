@@ -17,6 +17,7 @@
 }
 
 .stat-card {
+  position: relative;
   background: var(--primary-very-low);
   border: 1px solid var(--primary-low);
   border-radius: 8px;
@@ -55,6 +56,55 @@
     .change-neutral {
       color: var(--primary-medium);
     }
+  }
+}
+
+.patreon-info-tooltip {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  cursor: help;
+
+  .d-icon {
+    color: var(--primary-medium);
+    font-size: 1rem;
+  }
+
+  .patreon-tooltip-content {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--primary);
+    color: var(--secondary);
+    padding: 0.6rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    line-height: 1.4;
+    width: 260px;
+    white-space: normal;
+    text-align: left;
+    z-index: 100;
+    transition: opacity 0.2s;
+    pointer-events: none;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      right: 0.4rem;
+      border: 5px solid transparent;
+      border-bottom-color: var(--primary);
+    }
+  }
+
+  &:hover .patreon-tooltip-content {
+    visibility: visible;
+    opacity: 1;
   }
 }
 
