@@ -783,14 +783,242 @@ Set up Patreon OAuth application and configure credentials:
    - Configure cache duration (default: 30 minutes)
    - Configure sync frequency (default: 24 hours)
 
-### 5. Additional Enhancements (Optional)
+### 5. UI and Configuration Improvements
+
+**Priority improvements for the current implementation:**
+
+#### 5.1. Align Historical Data Table Columns
+
+The monthly history table needs proper column alignment for better readability:
+
+**Current Issue**: Column titles and row content may not be properly aligned
+
+**Implementation**:
+```scss
+// assets/stylesheets/patreon-stats.scss
+.monthly-history-table {
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    th, td {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      
+      &:nth-child(2), // Patrons column
+      &:nth-child(3)  // Total Amount column
+      {
+        text-align: right; // Right-align numeric columns
+      }
+    }
+  }
+}
+```
+
+**Template Update**:
+```handlebars
+<table>
+  <thead>
+    <tr>
+      <th class="align-left">Month</th>
+      <th class="align-right">Patrons</th>
+      <th class="align-right">Total Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each model.monthly_history as |month|}}
+      <tr>
+        <td class="align-left">{{month-name month.month}} {{month.year}}</td>
+        <td class="align-right">{{month.patron_count}}</td>
+        <td class="align-right">${{month.total_amount}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+```
+
+#### 5.2. Make Revenue Breakdown Percentages Configurable
+
+Currently, Patreon fee (10%) and tax rate (43%) are hardcoded. Make them configurable site settings:
+
+**Settings Addition** (`config/settings.yml`):
+```yaml
+patreon_donations:
+  patreon_donations_platform_fee_percentage:
+    default: 10.0
+    min: 0
+    max: 100
+    type: float
+    description: "Patreon platform fee percentage (default: 10%)"
+  
+  patreon_donations_tax_rate_percentage:
+    default: 43.0
+    min: 0
+    max: 100
+    type: float
+    description: "Tax rate percentage applied to net revenue after platform fees"
+```
+
+**Template Update** (`assets/javascripts/discourse/templates/patreon-stats.hbs`):
+```handlebars
+<div class="breakdown-row deduction">
+  <span class="breakdown-label">Less Patreon fee ({{siteSettings.patreon_donations_platform_fee_percentage}}%):</span>
+  <span class="breakdown-value">-${{multiply model.stats.monthly_estimate (divide siteSettings.patreon_donations_platform_fee_percentage 100)}}</span>
+</div>
+
+{{! Calculate subtotal after platform fee }}
+{{#let (multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))) as |afterPlatformFee|}}
+  <div class="breakdown-row subtotal">
+    <span class="breakdown-label">Subtotal after Patreon:</span>
+    <span class="breakdown-value">${{afterPlatformFee}}</span>
+  </div>
+  
+  <div class="breakdown-row deduction">
+    <span class="breakdown-label">Less taxes ({{siteSettings.patreon_donations_tax_rate_percentage}}%):</span>
+    <span class="breakdown-value">-${{multiply afterPlatformFee (divide siteSettings.patreon_donations_tax_rate_percentage 100)}}</span>
+  </div>
+  
+  <div class="breakdown-row total">
+    <span class="breakdown-label">Net income available:</span>
+    <span class="breakdown-value">${{multiply afterPlatformFee (subtract 1 (divide siteSettings.patreon_donations_tax_rate_percentage 100))}}</span>
+  </div>
+{{/let}}
+```
+
+**Helper Addition** (`assets/javascripts/discourse/helpers/`):
+```javascript
+// divide.js.es6
+import { registerUnbound } from "discourse-common/lib/helpers";
+
+registerUnbound("divide", function(value, divisor) {
+  const num = parseFloat(value) || 0;
+  const div = parseFloat(divisor) || 1;
+  return (num / div).toFixed(4);
+});
+
+// subtract.js.es6
+import { registerUnbound } from "discourse-common/lib/helpers";
+
+registerUnbound("subtract", function(value, subtrahend) {
+  const num = parseFloat(value) || 0;
+  const sub = parseFloat(subtrahend) || 0;
+  return (num - sub).toFixed(4);
+});
+```
+
+**Benefits**:
+- Site-specific configuration for different tax jurisdictions
+- No code changes needed to update percentages
+- Accurate representation of actual financial breakdown
+
+#### 5.3. Add Group-Based Access Control
+
+Make the stats page visible only to specific Discourse groups (admins by default):
+
+**Settings Addition** (`config/settings.yml`):
+```yaml
+patreon_donations:
+  patreon_donations_allowed_groups:
+    type: group_list
+    default: "admins"
+    list_type: compact
+    description: "Discourse groups allowed to view Patreon donation statistics. Default: admins only"
+```
+
+**Controller Update** (`app/controllers/patreon_stats_controller.rb`):
+```ruby
+class PatreonStatsController < ::ApplicationController
+  requires_plugin 'discourse-patreon-donations'
+  before_action :ensure_logged_in
+  before_action :ensure_authorized
+
+  def show
+    unless SiteSetting.patreon_donations_enabled
+      return render_json_error(I18n.t('patreon_stats.error.not_configured'), status: 503)
+    end
+
+    stats = fetch_cached_stats
+    monthly_history = fetch_monthly_history
+
+    if stats
+      monthly_change = calculate_monthly_change(stats[:monthly_estimate], monthly_history)
+      
+      render json: { 
+        stats: stats.merge(monthly_change: monthly_change),
+        monthly_history: monthly_history
+      }
+    else
+      render_json_error(I18n.t('patreon_stats.error.fetch_failed'), status: 503)
+    end
+  end
+
+  private
+
+  def ensure_authorized
+    allowed_group_names = SiteSetting.patreon_donations_allowed_groups.split('|')
+    user_groups = current_user.groups.pluck(:name)
+    
+    unless current_user.admin? || (allowed_group_names & user_groups).any?
+      raise Discourse::InvalidAccess.new(
+        'You do not have permission to view Patreon statistics',
+        custom_message: 'patreon_stats.error.not_authorized'
+      )
+    end
+  end
+
+  # ... rest of controller methods
+end
+```
+
+**Route Update** (`assets/javascripts/discourse/routes/patreon-stats.js.es6`):
+```javascript
+import DiscourseRoute from "discourse/routes/discourse";
+
+export default DiscourseRoute.extend({
+  beforeModel() {
+    if (!this.currentUser) {
+      this.replaceWith("login");
+    }
+  },
+
+  model() {
+    return ajax("/patreon-stats.json").catch(error => {
+      if (error.jqXHR && error.jqXHR.status === 403) {
+        bootbox.alert(I18n.t("patreon_stats.error.not_authorized"));
+        this.replaceWith("discovery");
+      }
+      return { error: true, message: error.message };
+    });
+  }
+});
+```
+
+**Translation Update** (`config/locales/client.en.yml`):
+```yaml
+en:
+  js:
+    patreon_stats:
+      title: "Patreon Donation Summary"
+      error:
+        fetch_failed: "Unable to fetch Patreon statistics. Please try again later."
+        not_authorized: "You do not have permission to view this page. Contact an administrator if you believe this is an error."
+```
+
+**Benefits**:
+- Control who can see financial data
+- Flexible group-based permissions (e.g., "admins|moderators|donors")
+- Prevents unauthorized access to sensitive donation information
+- Works with Discourse's existing group system
+
+### 6. Additional Enhancements (Future Iterations)
 
 Consider these improvements for future iterations:
 
 - Add token refresh logic in API client
 - Implement exponential backoff for rate limits
-- Add staff-only access control to stats page
 - Create admin dashboard widgets for quick stats view
-- Add historical data tracking and trend charts
+- Add data export to CSV functionality
 - Implement webhook support for real-time updates
 - Add email notifications for milestone achievements
+- Add patron tier breakdown charts
+- Implement forecasting based on historical trends
