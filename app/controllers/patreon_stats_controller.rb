@@ -48,9 +48,12 @@ class PatreonStatsController < ::ApplicationController
   end
 
   def fetch_cached_stats
-    Rails.cache.fetch(cache_key, expires_in: cache_duration) do
-      calculate_fresh_stats
-    end
+    cached = Rails.cache.read(cache_key)
+    return cached if cached.present?
+
+    stats = calculate_fresh_stats
+    Rails.cache.write(cache_key, stats, expires_in: cache_duration) if stats.present?
+    stats
   rescue StandardError => e
     Rails.logger.error("Error fetching Patreon stats: #{e.message}")
     nil
