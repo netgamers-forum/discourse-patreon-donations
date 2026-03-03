@@ -52,9 +52,8 @@ A Discourse plugin that displays Patreon campaign statistics on a read-only page
 - **Security**: Encrypted credential storage, rate limit respect
 
 ### Testing
-- Write tests that are fast, independent, and test one thing at a time
-- Use RSpec for backend, QUnit for frontend
-- Follow TDD approach when possible
+- Manual testing on staging environment (no automated test suite)
+- Verify changes by deploying to staging and checking behavior
 
 ## Version Control Strategy
 
