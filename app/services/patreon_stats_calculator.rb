@@ -32,6 +32,10 @@ module DiscoursePatreonDonations
       total_cents / 100.0
     end
 
+    def active_member_ids
+      active_members.map { |m| m['id'] }.compact.sort
+    end
+
     def last_month_total
       last_month_members.sum { |m| entitled_amount(m) } / 100.0
     end

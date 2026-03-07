@@ -38,6 +38,7 @@ module ::Jobs
         patron_count: calculator.patron_count,
         monthly_estimate: calculator.monthly_estimate,
         last_month_total: calculator.last_month_total,
+        active_member_ids: calculator.active_member_ids,
         updated_at: Time.now.utc
       }
 
@@ -73,7 +74,8 @@ module ::Jobs
         total_amount_cents,
         now,
         platform_fee_percentage: SiteSetting.patreon_donations_platform_fee_percentage,
-        tax_rate_percentage: SiteSetting.patreon_donations_tax_rate_percentage
+        tax_rate_percentage: SiteSetting.patreon_donations_tax_rate_percentage,
+        active_member_ids: stats[:active_member_ids]
       )
 
       Rails.logger.info("Recorded monthly snapshot for campaign #{campaign_id}: #{stats[:patron_count]} patrons, #{stats[:monthly_estimate]}")
