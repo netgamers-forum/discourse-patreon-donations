@@ -219,7 +219,8 @@
 
           &:nth-child(2),
           &:nth-child(4),
-          &:nth-child(5) {
+          &:nth-child(5),
+          &:nth-child(6) {
             text-align: right;
           }
         }
@@ -243,7 +244,8 @@
 
             &:nth-child(2),
             &:nth-child(4),
-            &:nth-child(5) {
+            &:nth-child(5),
+            &:nth-child(6) {
               text-align: right;
               font-weight: 500;
             }
@@ -340,6 +342,20 @@
           color: var(--success);
         }
       }
+    }
+  }
+
+  .breakdown-declined-note {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--danger-low);
+    border: 1px solid var(--danger-medium);
+    border-radius: 4px;
+    color: var(--danger);
+    font-size: 0.9rem;
+
+    .d-icon {
+      margin-right: 0.3rem;
     }
   }
 

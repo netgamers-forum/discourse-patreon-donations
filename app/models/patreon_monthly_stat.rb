@@ -10,7 +10,7 @@ module DiscoursePatreonDonations
     validates :patron_count, presence: true, numericality: { greater_than_or_equal_to: 0 }
     validates :total_amount_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
 
-    def self.record_monthly_snapshot(campaign_id, patron_count, total_amount_cents, date = Time.now.utc, platform_fee_percentage: nil, tax_rate_percentage: nil, active_member_ids: nil)
+    def self.record_monthly_snapshot(campaign_id, patron_count, total_amount_cents, date = Time.now.utc, platform_fee_percentage: nil, tax_rate_percentage: nil, active_member_ids: nil, declined_count: nil)
       year = date.year
       month = date.month
 
@@ -25,6 +25,7 @@ module DiscoursePatreonDonations
       stat.platform_fee_percentage = platform_fee_percentage
       stat.tax_rate_percentage = tax_rate_percentage
       stat.active_member_ids = active_member_ids&.to_json
+      stat.declined_count = declined_count
       stat.save!
 
       cleanup_old_records(campaign_id)
@@ -73,7 +74,8 @@ module DiscoursePatreonDonations
           now,
           platform_fee_percentage: SiteSetting.patreon_donations_platform_fee_percentage,
           tax_rate_percentage: SiteSetting.patreon_donations_tax_rate_percentage,
-          active_member_ids: calculator.active_member_ids
+          active_member_ids: calculator.active_member_ids,
+          declined_count: calculator.declined_patrons_count
         )
 
         Rails.logger.info("Created/updated current month snapshot for campaign #{campaign_id}: #{current_patron_count} patrons, $#{current_amount_cents / 100.0}")
@@ -110,6 +112,7 @@ module DiscoursePatreonDonations
         total_amount: total_amount,
         total_amount_cents: total_amount_cents,
         net_amount: net_amount,
+        declined_count: declined_count,
         snapshot_taken_at: created_at&.iso8601
       }
     end

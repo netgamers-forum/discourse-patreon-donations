@@ -27,6 +27,18 @@ module DiscoursePatreonDonations
       active_members.map { |m| m['id'] }.compact.sort
     end
 
+    def declined_patrons_count
+      declined_members.length
+    end
+
+    def recently_declined_count
+      recently_declined_members.length
+    end
+
+    def recently_declined_amount
+      recently_declined_members.sum { |m| entitled_amount(m) } / 100.0
+    end
+
     def last_month_total
       last_month_members.sum { |m| entitled_amount(m) } / 100.0
     end
@@ -35,6 +47,14 @@ module DiscoursePatreonDonations
 
     def active_members
       @active_members ||= @members.select { |m| patron_status(m) == 'active_patron' }
+    end
+
+    def declined_members
+      @declined_members ||= @members.select { |m| patron_status(m) == 'declined_patron' }
+    end
+
+    def recently_declined_members
+      @recently_declined_members ||= declined_members.select { |m| declined_recently?(m) }
     end
 
     def log_member_status_breakdown
@@ -74,6 +94,17 @@ module DiscoursePatreonDonations
       last_month_end = Time.now.utc.beginning_of_month - 1.second
 
       charge_date >= last_month_start && charge_date <= last_month_end
+    rescue ArgumentError => e
+      Rails.logger.error("Invalid date format: #{e.message}")
+      false
+    end
+
+    def declined_recently?(member, days: 25)
+      charge_date_str = member.dig('attributes', 'last_charge_date')
+      return false unless charge_date_str
+
+      charge_date = Time.parse(charge_date_str)
+      charge_date >= (Time.now.utc - days.days)
     rescue ArgumentError => e
       Rails.logger.error("Invalid date format: #{e.message}")
       false

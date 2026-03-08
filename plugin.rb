@@ -13,6 +13,7 @@ register_svg_icon 'dollar-sign'
 register_svg_icon 'circle-info'
 register_svg_icon 'clock'
 register_svg_icon 'fab-github'
+register_svg_icon 'circle-exclamation'
 
 after_initialize do
   module ::DiscoursePatreonDonations

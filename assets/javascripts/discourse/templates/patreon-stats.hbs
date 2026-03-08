@@ -58,6 +58,9 @@
             <span class="breakdown-value">{{model.stats.currency}} {{multiply (multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))) (subtract 1 (divide siteSettings.patreon_donations_tax_rate_percentage 100))}}</span>
           </div>
         </div>
+        {{#if model.stats.recently_declined_count}}
+          <p class="breakdown-declined-note">{{d-icon "circle-exclamation"}} {{model.stats.recently_declined_count}} declined payment(s) in the last 25 days, totalling {{model.stats.currency}} {{multiply model.stats.recently_declined_amount 1}} in potentially lost revenue.</p>
+        {{/if}}
       </div>
     </div>
 
@@ -72,6 +75,7 @@
                   <th>Month</th>
                   <th>Patrons</th>
                   <th>Changes</th>
+                  <th>Declined</th>
                   <th>Est. Amount</th>
                   <th>Est. Net</th>
                 </tr>
@@ -82,6 +86,7 @@
                     <td>{{#if record.snapshot_taken_at}}<span class="snapshot-time-tooltip">{{d-icon "clock"}}<span class="snapshot-time-content">Snapshot taken: {{format-datetime record.snapshot_taken_at}}</span></span> {{/if}}{{month-name record.month}} {{record.year}}</td>
                     <td>{{record.patron_count}}</td>
                     <td>{{{format-patron-change record.patrons_joined record.patrons_left}}}</td>
+                    <td>{{#if record.declined_count}}<span class="change-negative">{{record.declined_count}}</span>{{else}}0{{/if}}</td>
                     <td>{{model.stats.currency}} {{multiply record.total_amount 1}}</td>
                     <td>{{#if record.net_amount}}{{model.stats.currency}} {{multiply record.net_amount 1}}{{else}}N/A{{/if}}</td>
                   </tr>
