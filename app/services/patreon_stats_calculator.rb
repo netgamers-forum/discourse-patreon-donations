@@ -98,10 +98,13 @@ module DiscoursePatreonDonations
     end
 
     # For declined patrons, Patreon zeros out currently_entitled_amount_cents.
-    # Use the tier amount instead to estimate the lost revenue.
+    # Try will_pay_amount_cents, then tier amount as fallbacks.
     def tier_or_entitled_amount(member)
       amount = entitled_amount(member)
       return amount if amount > 0
+
+      will_pay = member.dig('attributes', 'will_pay_amount_cents') || 0
+      return will_pay if will_pay > 0
 
       member.dig('attributes', 'tier_amount_cents') || 0
     end

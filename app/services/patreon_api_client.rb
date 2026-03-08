@@ -37,7 +37,7 @@ module DiscoursePatreonDonations
       loop do
         endpoint = "/campaigns/#{@campaign_id}/members"
         params = {
-          'fields[member]' => 'currently_entitled_amount_cents,patron_status,last_charge_date,last_charge_status',
+          'fields[member]' => 'currently_entitled_amount_cents,will_pay_amount_cents,patron_status,last_charge_date,last_charge_status',
           'fields[tier]' => 'amount_cents,title',
           'include' => 'currently_entitled_tiers',
           'page[count]' => '1000'
@@ -63,6 +63,17 @@ module DiscoursePatreonDonations
         tier_ids = member.dig('relationships', 'currently_entitled_tiers', 'data') || []
         tier_amount = tier_ids.sum { |t| tier_map[t['id']] || 0 }
         member['attributes']['tier_amount_cents'] = tier_amount if tier_amount > 0
+      end
+
+      # Log declined members to debug tier/amount resolution
+      declined = all_members.select { |m| m.dig('attributes', 'patron_status') == 'declined_patron' }
+      if declined.any?
+        Rails.logger.warn("Patreon API: #{declined.length} declined members found")
+        declined.first(3).each do |m|
+          attrs = m['attributes']
+          rels = m.dig('relationships', 'currently_entitled_tiers', 'data') || []
+          Rails.logger.warn("  Declined member #{m['id']}: entitled=#{attrs['currently_entitled_amount_cents']}, will_pay=#{attrs['will_pay_amount_cents']}, tier_amount=#{attrs['tier_amount_cents']}, tier_ids=#{rels.map { |t| t['id'] }}")
+        end
       end
 
       all_members
