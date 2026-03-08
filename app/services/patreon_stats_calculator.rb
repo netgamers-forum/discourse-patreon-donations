@@ -16,18 +16,9 @@ module DiscoursePatreonDonations
     end
 
     def monthly_estimate
+      log_member_status_breakdown
+
       total_cents = active_members.sum { |m| entitled_amount(m) }
-
-      # Patreon v1 API no longer returns amount_cents on individual pledges.
-      # Fall back to campaign_pledge_sum (in cents) from the campaign object.
-      if total_cents == 0 && active_members.any?
-        pledge_sum = @campaign_data&.dig('attributes', 'campaign_pledge_sum').to_i
-        if pledge_sum > 0
-          Rails.logger.warn("Monthly estimate: using campaign_pledge_sum #{pledge_sum} cents")
-          return pledge_sum / 100.0
-        end
-      end
-
       Rails.logger.warn("Monthly estimate calculation: #{active_members.count} active members, #{total_cents} total cents, $#{total_cents / 100.0}")
       total_cents / 100.0
     end
@@ -44,6 +35,16 @@ module DiscoursePatreonDonations
 
     def active_members
       @active_members ||= @members.select { |m| patron_status(m) == 'active_patron' }
+    end
+
+    def log_member_status_breakdown
+      statuses = @members.group_by { |m| patron_status(m) || 'nil' }
+      Rails.logger.warn("Patreon member breakdown: #{@members.length} total members fetched")
+      statuses.each do |status, members|
+        total_cents = members.sum { |m| entitled_amount(m) }
+        Rails.logger.warn("  #{status}: #{members.length} members, #{total_cents} cents ($#{total_cents / 100.0})")
+      end
+      Rails.logger.warn("  Campaign-level patron_count: #{@campaign_data&.dig('attributes', 'patron_count')}")
     end
 
     def last_month_members

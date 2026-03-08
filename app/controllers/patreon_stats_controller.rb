@@ -7,7 +7,6 @@ class PatreonStatsController < ::ApplicationController
 
   def show
     Rails.logger.info("PatreonStatsController#show - Plugin enabled: #{SiteSetting.patreon_donations_enabled}")
-    Rails.logger.info("PatreonStatsController#show - API version: #{SiteSetting.patreon_donations_api_version}")
     Rails.logger.info("PatreonStatsController#show - Campaign ID: #{SiteSetting.patreon_donations_campaign_id}")
     
     unless SiteSetting.patreon_donations_enabled

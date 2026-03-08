@@ -14,13 +14,6 @@ patreon_donations:
   patreon_donations_client_secret:
     default: ''
     secret: true
-  patreon_donations_api_version:
-    default: 'v2'
-    type: enum
-    choices:
-      - v1
-      - v2
-    client: true
   patreon_donations_campaign_url:
     default: ''
     client: true
