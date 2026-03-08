@@ -35,7 +35,7 @@ module ::Jobs
       calculator = DiscoursePatreonDonations::PatreonStatsCalculator.new(campaign_data, members)
       
       stats = {
-        patron_count: calculator.patron_count,
+        patron_count: calculator.active_patron_count,
         monthly_estimate: calculator.monthly_estimate,
         last_month_total: calculator.last_month_total,
         active_member_ids: calculator.active_member_ids,

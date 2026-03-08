@@ -58,7 +58,7 @@ module DiscoursePatreonDonations
         return { success: false, error: "Failed to fetch current Patreon data" } unless campaign_data && members
 
         calculator = DiscoursePatreonDonations::PatreonStatsCalculator.new(campaign_data, members)
-        current_patron_count = calculator.patron_count
+        current_patron_count = calculator.active_patron_count
         current_amount_cents = (calculator.monthly_estimate * 100).to_i
 
         campaign_id = SiteSetting.patreon_donations_campaign_id
