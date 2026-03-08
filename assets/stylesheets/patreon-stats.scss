@@ -343,13 +343,6 @@
     color: var(--primary);
   }
 
-  .breakdown-note {
-    font-size: 0.95rem;
-    color: var(--primary-medium);
-    margin-bottom: 1.5rem;
-    font-style: italic;
-  }
-
   .breakdown-table {
     .breakdown-row {
       display: flex;
@@ -409,7 +402,7 @@
   }
 
   .breakdown-fees-note {
-    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
     font-size: 0.85rem;
     color: var(--primary-medium);
     font-style: italic;

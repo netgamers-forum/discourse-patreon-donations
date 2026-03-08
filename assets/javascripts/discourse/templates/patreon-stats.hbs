@@ -62,7 +62,7 @@
     <div class="patreon-breakdown">
       <h3>Revenue Breakdown</h3>
       <div class="breakdown-content">
-        <p class="breakdown-note">Understanding the actual income available for expenses:</p>
+        <p class="breakdown-fees-note">Note: Patreon also deducts <a href="https://support.patreon.com/hc/en-us/articles/11111747095181-Creator-fees-overview" target="_blank" rel="noopener noreferrer">payment processing fees</a> per transaction before payout, which vary by payment method and currency.</p>
         <div class="breakdown-table">
           <div class="breakdown-row">
             <span class="breakdown-label">Estimated next month revenue:</span>
@@ -85,7 +85,6 @@
             <span class="breakdown-value">{{model.stats.currency}} {{multiply model.stats.net_income 1}}</span>
           </div>
         </div>
-        <p class="breakdown-fees-note">Note: Patreon also deducts payment processing fees per transaction before payout, which vary by payment method and currency. <a href="https://support.patreon.com/hc/en-us/articles/11111747095181-Creator-fees-overview" target="_blank" rel="noopener noreferrer">Learn more about creator fees</a>.</p>
         {{#if model.stats.recently_declined_count}}
           <p class="breakdown-declined-note">{{d-icon "circle-exclamation"}} {{model.stats.recently_declined_count}} declined payment(s) in the last 25 days totalling ~{{model.stats.currency}} {{multiply model.stats.recently_declined_amount 1}} (based on tier). These patrons may need to update their payment method.</p>
         {{/if}}
