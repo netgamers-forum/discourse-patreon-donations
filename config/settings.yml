@@ -27,7 +27,7 @@ patreon_donations:
     type: float
     client: true
   patreon_donations_tax_rate_percentage:
-    default: 43.0
+    default: 0.0
     min: 0
     max: 100
     type: float
