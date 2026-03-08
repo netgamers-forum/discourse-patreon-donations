@@ -58,10 +58,10 @@ module DiscoursePatreonDonations
       groups.map do |amount_cents, members|
         {
           title: tier_titles[amount_cents] || "Custom",
-          amount: amount_cents / 100.0,
+          amount: format('%.2f', amount_cents / 100.0),
           count: members.length
         }
-      end.sort_by { |r| r[:amount] }
+      end.sort_by { |r| r[:amount].to_f }
     end
 
     def last_month_total
