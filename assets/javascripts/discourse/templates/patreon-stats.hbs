@@ -79,7 +79,7 @@
               <tbody>
                 {{#each model.monthly_history as |record|}}
                   <tr>
-                    <td>{{month-name record.month}} {{record.year}} {{#if record.snapshot_taken_at}}<span class="snapshot-time-tooltip">{{d-icon "clock"}}<span class="snapshot-time-content">Snapshot taken: {{format-datetime record.snapshot_taken_at}}</span></span>{{/if}}</td>
+                    <td>{{#if record.snapshot_taken_at}}<span class="snapshot-time-tooltip">{{d-icon "clock"}}<span class="snapshot-time-content">Snapshot taken: {{format-datetime record.snapshot_taken_at}}</span></span> {{/if}}{{month-name record.month}} {{record.year}}</td>
                     <td>{{record.patron_count}}</td>
                     <td>{{{format-patron-change record.patrons_joined record.patrons_left}}}</td>
                     <td>{{model.stats.currency}} {{multiply record.total_amount 1}}</td>
