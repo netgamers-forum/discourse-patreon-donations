@@ -154,6 +154,24 @@
   }
 }
 
+.patreon-stats-footer {
+  text-align: center;
+  margin-top: 2rem;
+
+  a {
+    color: var(--primary-low-mid);
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--primary-medium);
+    }
+
+    .d-icon {
+      font-size: 1.25rem;
+    }
+  }
+}
+
 .patreon-stats-updated {
   text-align: center;
   color: var(--primary-medium);

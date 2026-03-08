@@ -12,6 +12,7 @@ register_asset 'stylesheets/patreon-stats.scss'
 register_svg_icon 'dollar-sign'
 register_svg_icon 'circle-info'
 register_svg_icon 'clock'
+register_svg_icon 'fab-github'
 
 after_initialize do
   module ::DiscoursePatreonDonations
