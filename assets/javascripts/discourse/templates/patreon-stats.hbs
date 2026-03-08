@@ -11,7 +11,9 @@
   {{#if model.stats}}
     <div class="patreon-stats-grid">
       <div class="stat-card">
-        {{#if model.stats.free_member_count}}<span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">Active paying patrons whose last payment was not declined. There are also {{model.stats.free_member_count}} free members on the campaign.</span></span>{{/if}}
+        <span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">{{#each model.stats.tier_breakdown as |tier|}}
+{{tier.title}} ({{@root.model.stats.currency}} {{multiply tier.amount 1}}): {{tier.count}}{{/each}}
+{{#if model.stats.free_member_count}}Free members: {{model.stats.free_member_count}}{{/if}}</span></span>
         <h3>Current Active Patrons</h3>
         <p class="stat-value">{{model.stats.active_patron_count}}</p>
       </div>
@@ -32,32 +34,6 @@
         <p class="stat-value">{{{format-change model.stats.monthly_change}}}</p>
       </div>
     </div>
-
-    {{#if model.stats.tier_breakdown}}
-      <div class="patreon-tier-breakdown">
-        <h3>Patron Tier Breakdown</h3>
-        <div class="tier-breakdown-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Tier</th>
-                <th>Amount</th>
-                <th>Patrons</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{#each model.stats.tier_breakdown as |tier|}}
-                <tr>
-                  <td>{{tier.title}}</td>
-                  <td>{{model.stats.currency}} {{multiply tier.amount 1}}</td>
-                  <td>{{tier.count}}</td>
-                </tr>
-              {{/each}}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    {{/if}}
 
     <div class="patreon-breakdown">
       <h3>Revenue Breakdown</h3>
