@@ -41,10 +41,13 @@ class PatreonStatsController < ::ApplicationController
   private
 
   def ensure_authorized
-    allowed_group_names = SiteSetting.patreon_donations_allowed_groups.split('|')
-    user_groups = current_user.groups.pluck(:name)
+    return if current_user.admin?
 
-    unless current_user.admin? || (allowed_group_names & user_groups).any?
+    allowed_refs = SiteSetting.patreon_donations_allowed_groups.split('|')
+    user_group_names = current_user.groups.pluck(:name)
+    user_group_ids = current_user.group_ids.map(&:to_s)
+
+    unless (allowed_refs & user_group_names).any? || (allowed_refs & user_group_ids).any?
       raise Discourse::InvalidAccess.new(
         I18n.t('patreon_stats.error.not_authorized'),
         nil,
