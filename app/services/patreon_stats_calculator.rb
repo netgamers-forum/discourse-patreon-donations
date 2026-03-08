@@ -133,15 +133,15 @@ module DiscoursePatreonDonations
     end
 
     # For declined patrons, Patreon zeros out currently_entitled_amount_cents.
-    # Try will_pay_amount_cents, then tier amount as fallbacks.
+    # Prefer tier amount (matches displayed price) over will_pay (includes fees).
     def tier_or_entitled_amount(member)
       amount = entitled_amount(member)
       return amount if amount > 0
 
-      will_pay = member.dig('attributes', 'will_pay_amount_cents') || 0
-      return will_pay if will_pay > 0
+      tier = member.dig('attributes', 'tier_amount_cents') || 0
+      return tier if tier > 0
 
-      member.dig('attributes', 'tier_amount_cents') || 0
+      member.dig('attributes', 'will_pay_amount_cents') || 0
     end
 
     def charged_last_month?(member)
