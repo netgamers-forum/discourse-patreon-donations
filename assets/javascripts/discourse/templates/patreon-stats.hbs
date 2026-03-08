@@ -11,8 +11,9 @@
   {{#if model.stats}}
     <div class="patreon-stats-grid">
       <div class="stat-card">
+        {{#if model.stats.free_member_count}}<span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">Paying patrons only. There are also {{model.stats.free_member_count}} free members on the campaign ({{model.stats.total_member_count}} total).</span></span>{{/if}}
         <h3>Current Active Patrons</h3>
-        <p class="stat-value">{{model.stats.patron_count}}</p>
+        <p class="stat-value">{{model.stats.active_patron_count}}</p>
       </div>
 
       <div class="stat-card">
@@ -59,7 +60,7 @@
           </div>
         </div>
         {{#if model.stats.recently_declined_count}}
-          <p class="breakdown-declined-note">{{d-icon "circle-exclamation"}} {{model.stats.recently_declined_count}} declined payment(s) in the last 25 days, totalling {{model.stats.currency}} {{multiply model.stats.recently_declined_amount 1}} in potentially lost revenue.</p>
+          <p class="breakdown-declined-note">{{d-icon "circle-exclamation"}} {{model.stats.recently_declined_count}} declined payment(s) in the last 25 days totalling ~{{model.stats.currency}} {{multiply model.stats.recently_declined_amount 1}} (based on tier). These patrons may need to update their payment method.</p>
         {{/if}}
       </div>
     </div>

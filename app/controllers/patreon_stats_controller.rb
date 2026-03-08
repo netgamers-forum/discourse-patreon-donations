@@ -148,6 +148,9 @@ class PatreonStatsController < ::ApplicationController
 
     {
       patron_count: calculator.patron_count,
+      active_patron_count: calculator.active_patron_count,
+      free_member_count: calculator.free_member_count,
+      total_member_count: calculator.total_member_count,
       monthly_estimate: calculator.monthly_estimate,
       last_month_total: calculator.last_month_total,
       currency: calculator.currency,

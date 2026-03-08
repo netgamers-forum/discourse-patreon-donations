@@ -11,6 +11,18 @@ module DiscoursePatreonDonations
       @campaign_data&.dig('attributes', 'patron_count') || 0
     end
 
+    def active_patron_count
+      active_members.length
+    end
+
+    def free_member_count
+      @members.count { |m| patron_status(m).nil? }
+    end
+
+    def total_member_count
+      @members.length
+    end
+
     def currency
       @campaign_data&.dig('attributes', 'currency') || 'USD'
     end
@@ -36,7 +48,7 @@ module DiscoursePatreonDonations
     end
 
     def recently_declined_amount
-      recently_declined_members.sum { |m| entitled_amount(m) } / 100.0
+      recently_declined_members.sum { |m| tier_or_entitled_amount(m) } / 100.0
     end
 
     def last_month_total
@@ -83,6 +95,15 @@ module DiscoursePatreonDonations
 
     def entitled_amount(member)
       member.dig('attributes', 'currently_entitled_amount_cents') || 0
+    end
+
+    # For declined patrons, Patreon zeros out currently_entitled_amount_cents.
+    # Use the tier amount instead to estimate the lost revenue.
+    def tier_or_entitled_amount(member)
+      amount = entitled_amount(member)
+      return amount if amount > 0
+
+      member.dig('attributes', 'tier_amount_cents') || 0
     end
 
     def charged_last_month?(member)

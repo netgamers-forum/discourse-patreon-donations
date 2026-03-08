@@ -31,12 +31,15 @@ module DiscoursePatreonDonations
 
     def fetch_members
       all_members = []
+      tier_map = {}
       cursor = nil
 
       loop do
         endpoint = "/campaigns/#{@campaign_id}/members"
         params = {
           'fields[member]' => 'currently_entitled_amount_cents,patron_status,last_charge_date,last_charge_status',
+          'fields[tier]' => 'amount_cents,title',
+          'include' => 'currently_entitled_tiers',
           'page[count]' => '1000'
         }
         params['page[cursor]'] = cursor if cursor
@@ -44,9 +47,22 @@ module DiscoursePatreonDonations
         response = make_request(endpoint, params)
         break unless response
 
+        # Build tier lookup from included data
+        (response['included'] || []).each do |included|
+          next unless included['type'] == 'tier'
+          tier_map[included['id']] = included.dig('attributes', 'amount_cents') || 0
+        end
+
         all_members.concat(response['data'] || [])
         cursor = response.dig('meta', 'pagination', 'cursors', 'next')
         break unless cursor
+      end
+
+      # Attach tier amount to each member for declined patron revenue calculation
+      all_members.each do |member|
+        tier_ids = member.dig('relationships', 'currently_entitled_tiers', 'data') || []
+        tier_amount = tier_ids.sum { |t| tier_map[t['id']] || 0 }
+        member['attributes']['tier_amount_cents'] = tier_amount if tier_amount > 0
       end
 
       all_members
