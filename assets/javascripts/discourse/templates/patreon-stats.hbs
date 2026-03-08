@@ -11,10 +11,12 @@
   {{#if model.stats}}
     <div class="patreon-stats-grid">
       <div class="stat-card">
-        <span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">{{~#each model.stats.tier_breakdown as |tier|}}
-{{tier.count}}x {{tier.title}} ({{model.stats.currency}} {{tier.amount}}){{~/each}}
-{{~#if model.stats.free_member_count}}
-{{model.stats.free_member_count}}x Free members{{/if}}</span></span>
+        <span class="patreon-info-tooltip">{{d-icon "circle-info"}}
+          <span class="patreon-tooltip-content">
+            {{~#each model.stats.tier_breakdown as |tier|}}{{tier.count}}x {{tier.title}} ({{model.stats.currency}} {{tier.amount}}){{~/each}}
+            {{~#if model.stats.free_member_count}}{{model.stats.free_member_count}}x Free members{{/if}}
+          </span>
+        </span>
         <h3>Current Active Patrons</h3>
         <p class="stat-value">{{model.stats.active_patron_count}}</p>
       </div>
@@ -25,7 +27,11 @@
       </div>
 
       <div class="stat-card">
-        <span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">This is an estimate based on the pledge amounts of active patrons. Patreon does not expose actual transaction data via its API, so if any payments are declined or fail, the actual amount received will be lower.</span></span>
+        <span class="patreon-info-tooltip">{{d-icon "circle-info"}}
+          <span class="patreon-tooltip-content">
+            This is an estimate based on the pledge amounts of active patrons. Patreon does not expose actual transaction data via its API, so if any payments are declined or fail, the actual amount received will be lower.
+          </span>
+        </span>
         <h3>Next Month Estimate</h3>
         <p class="stat-value">{{model.stats.currency}} {{multiply model.stats.monthly_estimate 1}}</p>
       </div>
