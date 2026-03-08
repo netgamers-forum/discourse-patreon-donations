@@ -1,35 +1,26 @@
 # Patreon API Reference
 
-This document outlines the Patreon API endpoints used by this plugin.
+This document outlines the Patreon API v2 endpoints used by this plugin.
 
 ## API Version
 
-The plugin supports both **v1** and **v2** API endpoints:
+The plugin uses the **Patreon API v2** exclusively.
 
-- **v2 (Recommended)**: The current and actively maintained API version
-  - Base URL: `https://www.patreon.com/api/oauth2/v2`
-  - Full JSON:API spec compliance
-  - Better documentation and support
-  
-- **v1 (Legacy)**: Older API version, use only if you have a v1 OAuth client
-  - Base URL: `https://api.patreon.com/oauth2/api`
-  - Compatible with older OAuth clients
-  - May have limited future support
-  - Uses dedicated `/campaigns/{id}/pledges` endpoint with pagination
-
-**Configuration**: Set the API version in plugin settings (`patreon_donations_api_version`). The plugin will automatically use the correct base URL and handle any differences between the versions.
-
-**Note**: API v1 may be deprecated in the future. We recommend using v2 for new integrations.
+- Base URL: `https://www.patreon.com/api/oauth2/v2`
+- Full JSON:API spec compliance
 
 ## Authentication
 
 - **OAuth 2.0** required
 - Must register a client at: https://www.patreon.com/portal/registration/register-clients
+- Select **API Version 2** when creating the client
 - Credentials needed:
   - Client ID
   - Client Secret
   - Creator's Access Token
   - Creator's Refresh Token
+
+These are stored in the plugin's own settings, separate from any other Patreon plugin.
 
 ## Required Scopes
 
@@ -71,8 +62,6 @@ Your campaign ID may be visible in certain Patreon URLs:
   - The URL will be: `https://www.patreon.com/portal/campaigns/CAMPAIGN_ID/...`
   - Extract the numeric ID from the URL
 
-- **API Documentation Page**: When testing API calls in the Patreon developer portal, the campaign ID is often pre-filled in example URLs
-
 ### Method 3: From Browser Developer Tools
 
 1. Log into Patreon as the creator
@@ -105,15 +94,13 @@ Your campaign ID may be visible in certain Patreon URLs:
 **Authentication**: `Authorization: Bearer <access_token>`
 
 **Key Fields**:
-```javascript
+```json
 {
   "data": [{
     "attributes": {
-      "patron_count": 1000,        // Number of active subscribers
+      "patron_count": 138,
       "is_monthly": true,
-      "creation_name": "online communities",
-      "patron_count": 2,
-      // ... other fields
+      "creation_name": "online communities"
     },
     "id": "1234560",
     "type": "campaign"
@@ -128,7 +115,9 @@ curl --request GET \
   --header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
 ```
 
-### 2. Get Campaign Members (V2)
+**Note**: `patron_count` includes both paid and free members. To get only paying patrons, count members with `patron_status == "active_patron"` from the members endpoint.
+
+### 2. Get Campaign Members
 
 **Endpoint**: `GET /api/oauth2/v2/campaigns/{campaign_id}/members`
 
@@ -136,29 +125,32 @@ curl --request GET \
 
 **Authentication**: `Authorization: Bearer <access_token>`
 
-**Pagination**: 
+**Pagination**:
 - Returns up to 1000 results per page
 - Use `page[count]` and `page[cursor]` query parameters
 - Check `meta.pagination.cursors.next` for additional pages
 
 **Key Fields Per Member**:
-```javascript
+```json
 {
   "data": [{
     "attributes": {
-      "currently_entitled_amount_cents": 400,  // Current pledge amount
-      "patron_status": "active_patron",        // active_patron, declined_patron, former_patron
+      "currently_entitled_amount_cents": 400,
+      "patron_status": "active_patron",
       "last_charge_date": "2018-04-01T21:28:06+00:00",
-      "last_charge_status": "Paid",            // Paid, Declined, Deleted, Pending, etc.
-      "campaign_lifetime_support_cents": 400,  // Total lifetime support
-      "full_name": "Platform Team",
-      // ... other fields
+      "last_charge_status": "Paid"
     },
     "id": "03ca69c3-ebea-4b9a-8fac-e4a837873254",
     "type": "member"
   }]
 }
 ```
+
+**Patron Status Values**:
+- `active_patron` - Currently paying patron
+- `declined_patron` - Payment declined
+- `former_patron` - Cancelled patron
+- `null` - Free member (no payment)
 
 **Example Request**:
 ```bash
@@ -167,86 +159,18 @@ curl --request GET \
   --header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
 ```
 
-### 3. Get Campaign Pledges (V1)
-
-**Endpoint**: `GET /oauth2/api/campaigns/{campaign_id}/pledges`
-
-**Purpose**: Fetch all pledges for a campaign (V1 API)
-
-**Base URL**: `https://api.patreon.com`
-
-**Authentication**: `Authorization: Bearer <access_token>`
-
-**Pagination**:
-- Returns data in pages (typically 20 items per page)
-- Use `links.next` field to get the next page URL
-- Continue fetching until `links.next` is null
-
-**Key Fields Per Pledge**:
-```javascript
-{
-  "data": [{
-    "attributes": {
-      "amount_cents": 400,              // Pledge amount in cents
-      "created_at": "2018-04-01T21:28:06+00:00",
-      "declined_since": null,           // null if active, date if declined
-      "patron_pays_fees": false
-    },
-    "id": "12345678",
-    "type": "pledge"
-  }],
-  "links": {
-    "next": "https://api.patreon.com/oauth2/api/campaigns/1234/pledges?page%5Bcursor%5D=abc123"
-  }
-}
-```
-
-**Example Request**:
-```bash
-curl --request GET \
-  --url 'https://api.patreon.com/oauth2/api/campaigns/CAMPAIGN_ID/pledges' \
-  --header 'Authorization: Bearer YOUR_ACCESS_TOKEN'
-```
-
-**Pagination Example**:
-```ruby
-def fetch_all_pledges(campaign_id)
-  pledges = []
-  endpoint = "/campaigns/#{campaign_id}/pledges"
-  
-  loop do
-    response = make_request(endpoint)
-    pledges.concat(response['data'])
-    
-    next_url = response.dig('links', 'next')
-    break unless next_url
-    
-    # Extract path from next URL (remove base URL)
-    endpoint = extract_path_from_url(next_url)
-  end
-  
-  pledges
-end
-```
-
-**Important Notes**:
-- V1 pledges endpoint provides similar data to V2 members endpoint
-- Use `declined_since` to filter active vs declined pledges
-- Convert pledges to member format for consistency across API versions
-- Pagination is required to fetch all pledges (can have 100+ pages for large campaigns)
-
 ## Data Mapping for Plugin Features
 
-### 1. Number of Active Subscribers
-**Source**: `GET /api/oauth2/v2/campaigns`
-- Field: `patron_count`
-- Direct value from campaign endpoint
+### 1. Number of Active Patrons
+**Source**: `GET /api/oauth2/v2/campaigns/{campaign_id}/members`
+- Count members where `patron_status == "active_patron"`
+- This gives the number of currently paying patrons
 
 ### 2. Estimated Amount Per Month
 **Source**: `GET /api/oauth2/v2/campaigns/{campaign_id}/members`
 - Calculation: Sum all `currently_entitled_amount_cents` where `patron_status == "active_patron"`
 - Convert from cents to dollars: `total_cents / 100`
-- Filter out declined/former patrons
+- Filter out declined/former/free members
 
 **Algorithm**:
 ```javascript
@@ -256,49 +180,25 @@ members.forEach(member => {
     totalCents += member.attributes.currently_entitled_amount_cents;
   }
 });
-const monthlyEstimate = totalCents / 100; // Convert to dollars
+const monthlyEstimate = totalCents / 100;
 ```
 
 ### 3. Change from Last Month
 **Source**: Calculated from monthly snapshots (not directly from API)
 - Compares current month's live estimate against last completed month's snapshot
 - Calculation: `current_estimate - last_month_snapshot.total_amount`
-- **Note**: Since the API doesn't provide historical payment data, the plugin stores monthly snapshots in the database
+- Since the API doesn't provide historical payment data, the plugin stores monthly snapshots in the database
 
-**Algorithm**:
-```javascript
-// Get current month estimate from live API data
-const currentEstimate = calculateMonthlyEstimate(members);
-
-// Get last completed month's snapshot from database
-const lastMonthSnapshot = await getLastCompletedMonthSnapshot(campaignId);
-
-if (!lastMonthSnapshot) {
-  return null; // Show "N/A" - no previous data
-}
-
-// Calculate change
-const change = currentEstimate - lastMonthSnapshot.total_amount;
-
-// Format for display
-if (change > 0) {
-  return `+$${change.toFixed(2)}`; // Green
-} else if (change < 0) {
-  return `-$${Math.abs(change).toFixed(2)}`; // Red
-} else {
-  return "$0.00"; // Neutral
-}
-```
-
-**Display**:
-- Positive change (growth): `+$23.80` in green
-- Negative change (decline): `-$15.30` in red
-- No previous data: `N/A` in gray (first month only)
+### 4. Patron Changes (Joined/Left)
+**Source**: Calculated by diffing stored member ID arrays between consecutive snapshots
+- Each snapshot stores the list of active member IDs
+- Joined = IDs in current snapshot not in previous snapshot
+- Left = IDs in previous snapshot not in current snapshot
 
 ## Important Notes
 
 ### Token Refresh
-Access tokens expire after the duration specified in `expires_in` field. Implement token refresh:
+Access tokens expire after the duration specified in `expires_in` field. The plugin refreshes tokens automatically:
 
 ```bash
 POST https://www.patreon.com/api/oauth2/token
@@ -312,15 +212,15 @@ grant_type=refresh_token
 
 ### URL Encoding
 Query parameters with brackets must be URL-encoded:
-- `[` → `%5B`
-- `]` → `%5D`
+- `[` -> `%5B`
+- `]` -> `%5D`
 
-Example: `fields[campaign]` → `fields%5Bcampaign%5D`
+Example: `fields[campaign]` -> `fields%5Bcampaign%5D`
 
 ### User-Agent Header
 **Required**: Always include a User-Agent header or requests may be dropped with 403 response.
 
-Example: `User-Agent: NetGamers-Discourse-Patreon-Plugin/1.0`
+Example: `User-Agent: Discourse-Patreon-Plugin/discourse-patreon-donations`
 
 ## Error Handling
 

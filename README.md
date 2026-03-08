@@ -1,11 +1,11 @@
 # Discourse Patreon Donations
 
-A Discourse plugin that adds a read-only page at `/patreon-stats` displaying Patreon campaign statistics: active subscriber count, estimated monthly revenue with a net income breakdown, month-over-month change, and a 12-month historical table.
+A Discourse plugin that adds a read-only page at `/patreon-stats` displaying Patreon campaign statistics: active patron count, estimated monthly revenue with a net income breakdown, patron changes, and a 12-month historical table.
 
 ## Requirements
 
 - A self-hosted Discourse instance deployed via [Docker](https://github.com/discourse/discourse/blob/main/docs/INSTALL-cloud.md)
-- The [discourse-patreon](https://github.com/discourse/discourse-patreon) plugin installed and configured with valid OAuth credentials (Client ID, Client Secret, Creator Access Token, Refresh Token). This plugin reads those credentials directly and does not store its own copy.
+- A Patreon API v2 client with Creator Access Token (register at https://www.patreon.com/portal/registration/register-clients)
 
 ## Installation
 
@@ -18,8 +18,7 @@ hooks:
         cd: $home/plugins
         cmd:
           - git clone https://github.com/discourse/docker_manager.git
-          - git clone https://github.com/discourse/discourse-patreon.git
-          - git clone https://github.com/netgamers/discourse-patreon-donations.git
+          - git clone https://github.com/netgamers-forum/discourse-patreon-donations.git
 ```
 
 Then rebuild the container:
@@ -33,10 +32,22 @@ cd /var/discourse
 
 After installation, navigate to **Admin > Settings > Plugins > Patreon Donations**.
 
+### API Credentials
+
+| Setting | Description |
+|---------|-------------|
+| `patreon_donations_creator_access_token` | Creator Access Token from your Patreon API v2 client |
+| `patreon_donations_creator_refresh_token` | Creator Refresh Token for automatic token renewal |
+| `patreon_donations_client_id` | Patreon API Client ID |
+| `patreon_donations_client_secret` | Patreon API Client Secret |
+
+These are stored separately from any other Patreon plugin (e.g. discourse-patreon), so each plugin can use its own API client.
+
+### Plugin Settings
+
 | Setting | Description | Default |
 |---------|-------------|---------|
 | `patreon_donations_enabled` | Enables the plugin and the `/patreon-stats` route. | `false` |
-| `patreon_donations_api_version` | Patreon API version. Use `v1` for legacy OAuth clients, `v2` for newer ones. | `v2` |
 | `patreon_donations_campaign_url` | Your Patreon campaign URL (e.g. `patreon.com/yourcampaign`). Used to auto-discover the campaign ID. | empty |
 | `patreon_donations_platform_fee_percentage` | Patreon's platform fee, used in the revenue breakdown on the stats page. | `10.0` |
 | `patreon_donations_tax_rate_percentage` | Tax rate applied to net revenue (after platform fees) in the revenue breakdown. | `43.0` |
@@ -52,18 +63,21 @@ The campaign ID is stored internally in a hidden setting (`patreon_donations_cam
 
 A Sidekiq background job syncs data from the Patreon API at the interval set by `patreon_donations_sync_frequency`. The result is cached in Redis for `patreon_donations_cache_duration` hours. When a user visits `/patreon-stats`, the controller serves the cached data; if the cache has expired it fetches fresh data from Patreon on demand.
 
-The three summary boxes show:
-- Current active subscriber count from the Patreon campaign
-- Estimated revenue for the current month, derived from the campaign's total pledge sum
-- Difference between the current estimate and the most recent monthly snapshot (see below); shown as N/A only if no snapshots exist yet
+The summary boxes show:
+- Current active patron count (paying patrons only)
+- Patron changes compared to the last snapshot (joined/left)
+- Estimated revenue for the current month, derived from the sum of active patron pledges
+- Difference between the current estimate and the most recent monthly snapshot
+
+A revenue breakdown section shows the estimated net income after platform fees and taxes.
 
 **Monthly history**
 
-During the first sync that runs in a new calendar month, the job records a snapshot of the patron count and total pledge amount for that month. Once written, the snapshot is not updated again within the same month. This gives a stable baseline for the month-over-month change calculation and populates the 12-month history table.
+During the first sync that runs in a new calendar month, the job records a snapshot of the patron count, total pledge amount, and active member IDs for that month. Once written, the snapshot is not updated again within the same month. This gives a stable baseline for the month-over-month change calculation and populates the 12-month history table. Patron changes (joined/left) are computed by comparing member IDs between consecutive snapshots.
 
 **Token refresh**
 
-If the Patreon API returns a 401, the plugin attempts to refresh the access token automatically using the refresh token, client ID, and client secret stored in the core Patreon plugin settings. If the refresh token is also expired, new credentials must be generated from the Patreon developer portal and entered into the core plugin settings manually.
+If the Patreon API returns a 401, the plugin attempts to refresh the access token automatically using the refresh token, client ID, and client secret from the plugin's own settings. If the refresh token is also expired, new credentials must be generated from the Patreon developer portal and entered into the plugin settings manually.
 
 ## License
 
