@@ -35,11 +35,17 @@ module ::Jobs
       calculator = DiscoursePatreonDonations::PatreonStatsCalculator.new(campaign_data, members)
 
       stats = {
-        patron_count: calculator.active_patron_count,
+        patron_count: calculator.patron_count,
+        active_patron_count: calculator.active_patron_count,
+        free_member_count: calculator.free_member_count,
+        total_member_count: calculator.total_member_count,
         monthly_estimate: calculator.monthly_estimate,
+        tier_breakdown: calculator.tier_breakdown(tier_titles: client.tier_titles),
         last_month_total: calculator.last_month_total,
+        currency: calculator.currency,
         active_member_ids: calculator.active_member_ids,
-        declined_count: calculator.declined_patrons_count,
+        recently_declined_count: calculator.recently_declined_count,
+        recently_declined_amount: calculator.recently_declined_amount,
         updated_at: Time.now.utc
       }
 
@@ -71,16 +77,16 @@ module ::Jobs
 
       DiscoursePatreonDonations::PatreonMonthlyStat.record_monthly_snapshot(
         campaign_id,
-        stats[:patron_count],
+        stats[:active_patron_count],
         total_amount_cents,
         now,
         platform_fee_percentage: SiteSetting.patreon_donations_platform_fee_percentage,
         tax_rate_percentage: SiteSetting.patreon_donations_tax_rate_percentage,
         active_member_ids: stats[:active_member_ids],
-        declined_count: stats[:declined_count]
+        declined_count: stats[:recently_declined_count]
       )
 
-      Rails.logger.info("Recorded monthly snapshot for campaign #{campaign_id}: #{stats[:patron_count]} patrons, #{stats[:monthly_estimate]}")
+      Rails.logger.info("Recorded monthly snapshot for campaign #{campaign_id}: #{stats[:active_patron_count]} patrons, #{stats[:monthly_estimate]}")
     end
 
     def last_sync_time
