@@ -168,12 +168,14 @@ class PatreonStatsController < ::ApplicationController
 
     calculator = DiscoursePatreonDonations::PatreonStatsCalculator.new(campaign_data, members)
 
-    processing_fee = calculator.processing_fee_estimate(
+    fee_params = {
       standard_pct: SiteSetting.patreon_donations_processing_fee_percentage,
       standard_fixed_cents: SiteSetting.patreon_donations_processing_fee_fixed_cents,
       micro_pct: SiteSetting.patreon_donations_micro_processing_fee_percentage,
       micro_fixed_cents: SiteSetting.patreon_donations_micro_processing_fee_fixed_cents
-    )
+    }
+    processing_fee = calculator.processing_fee_estimate(**fee_params)
+    processing_fee_breakdown = calculator.processing_fee_breakdown(**fee_params)
 
     {
       patron_count: calculator.patron_count,
@@ -182,6 +184,7 @@ class PatreonStatsController < ::ApplicationController
       total_member_count: calculator.total_member_count,
       monthly_estimate: calculator.monthly_estimate,
       processing_fee: processing_fee,
+      processing_fee_breakdown: processing_fee_breakdown,
       last_month_total: calculator.last_month_total,
       currency: calculator.currency,
       active_member_ids: calculator.active_member_ids,

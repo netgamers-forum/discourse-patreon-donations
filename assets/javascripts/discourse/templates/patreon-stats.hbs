@@ -47,7 +47,8 @@
             <span class="breakdown-value">-{{model.stats.currency}} {{multiply model.stats.platform_fee 1}}</span>
           </div>
           <div class="breakdown-row deduction">
-            <span class="breakdown-label"><span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">Calculated per patron: {{siteSettings.patreon_donations_processing_fee_percentage}}% + ${{divide siteSettings.patreon_donations_processing_fee_fixed_cents 100}} for pledges >= $3, {{siteSettings.patreon_donations_micro_processing_fee_percentage}}% + ${{divide siteSettings.patreon_donations_micro_processing_fee_fixed_cents 100}} for pledges < $3.</span></span> Less processing fees:</span>
+            <span class="breakdown-label"><span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">Per-tier breakdown:{{#each model.stats.processing_fee_breakdown as |tier|}}
+${{tier.amount}} x {{tier.count}} patrons ({{tier.rate}}) = ${{tier.fee}}{{/each}}</span></span> Less processing fees:</span>
             <span class="breakdown-value">-{{model.stats.currency}} {{multiply model.stats.processing_fee 1}}</span>
           </div>
           <div class="breakdown-row subtotal">
