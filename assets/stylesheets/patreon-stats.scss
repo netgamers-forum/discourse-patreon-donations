@@ -268,7 +268,11 @@
 }
 
 .patreon-breakdown {
-  margin-top: 3rem;
+  margin-top: 2rem;
+
+  & + .patreon-breakdown {
+    margin-top: 1.5rem;
+  }
   background: var(--tertiary-very-low);
   border: 2px solid var(--tertiary-low);
   border-radius: 8px;

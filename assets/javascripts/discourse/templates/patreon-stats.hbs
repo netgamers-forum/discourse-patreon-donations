@@ -11,12 +11,6 @@
   {{#if model.stats}}
     <div class="patreon-stats-grid">
       <div class="stat-card">
-        <span class="patreon-info-tooltip">{{d-icon "circle-info"}}
-          <span class="patreon-tooltip-content">
-            {{~#each model.stats.tier_breakdown as |tier|}}{{tier.count}}x {{tier.title}} ({{model.stats.currency}} {{tier.amount}}){{~/each}}
-            {{~#if model.stats.free_member_count}}{{model.stats.free_member_count}}x Free members{{/if}}
-          </span>
-        </span>
         <h3>Current Active Patrons</h3>
         <p class="stat-value">{{model.stats.active_patron_count}}</p>
       </div>
@@ -28,9 +22,7 @@
 
       <div class="stat-card">
         <span class="patreon-info-tooltip">{{d-icon "circle-info"}}
-          <span class="patreon-tooltip-content">
-            This is an estimate based on the pledge amounts of active patrons. Patreon does not expose actual transaction data via its API, so if any payments are declined or fail, the actual amount received will be lower.
-          </span>
+          <span class="patreon-tooltip-content">This is an estimate based on the pledge amounts of active patrons. Patreon does not expose actual transaction data via its API, so if any payments are declined or fail, the actual amount received will be lower.</span>
         </span>
         <h3>Next Month Estimate</h3>
         <p class="stat-value">{{model.stats.currency}} {{multiply model.stats.monthly_estimate 1}}</p>
@@ -39,6 +31,28 @@
       <div class="stat-card">
         <h3>Change from Last Month</h3>
         <p class="stat-value">{{{format-change model.stats.monthly_change}}}</p>
+      </div>
+    </div>
+
+    <div class="patreon-breakdown patrons-breakdown">
+      <h3>Patrons Breakdown</h3>
+      <div class="breakdown-table">
+        {{#each model.stats.tier_breakdown as |tier|}}
+          <div class="breakdown-row">
+            <span class="breakdown-label">{{tier.title}} ({{model.stats.currency}} {{tier.amount}})</span>
+            <span class="breakdown-value">{{tier.count}}</span>
+          </div>
+        {{/each}}
+        {{#if model.stats.free_member_count}}
+          <div class="breakdown-row">
+            <span class="breakdown-label">Free members</span>
+            <span class="breakdown-value">{{model.stats.free_member_count}}</span>
+          </div>
+        {{/if}}
+        <div class="breakdown-row total">
+          <span class="breakdown-label">Total active patrons</span>
+          <span class="breakdown-value">{{model.stats.active_patron_count}}</span>
+        </div>
       </div>
     </div>
 
