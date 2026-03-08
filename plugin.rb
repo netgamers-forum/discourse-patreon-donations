@@ -11,6 +11,7 @@ enabled_site_setting :patreon_donations_enabled
 register_asset 'stylesheets/patreon-stats.scss'
 register_svg_icon 'dollar-sign'
 register_svg_icon 'circle-info'
+register_svg_icon 'clock'
 
 after_initialize do
   module ::DiscoursePatreonDonations

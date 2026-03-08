@@ -108,6 +108,53 @@
   }
 }
 
+.snapshot-time-tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  margin-left: 0.3rem;
+  vertical-align: middle;
+
+  .d-icon {
+    color: var(--primary-medium);
+    font-size: 0.75rem;
+  }
+
+  .snapshot-time-content {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: var(--secondary);
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    z-index: 100;
+    transition: opacity 0.2s;
+    pointer-events: none;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 4px solid transparent;
+      border-top-color: var(--primary);
+    }
+  }
+
+  &:hover .snapshot-time-content {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
 .patreon-stats-updated {
   text-align: center;
   color: var(--primary-medium);

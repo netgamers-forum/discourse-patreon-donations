@@ -109,7 +109,8 @@ module DiscoursePatreonDonations
         patron_count: patron_count,
         total_amount: total_amount,
         total_amount_cents: total_amount_cents,
-        net_amount: net_amount
+        net_amount: net_amount,
+        snapshot_taken_at: created_at&.iso8601
       }
     end
   end
