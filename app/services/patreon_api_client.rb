@@ -4,9 +4,12 @@ module DiscoursePatreonDonations
   class PatreonApiClient
     BASE_URL = 'https://www.patreon.com/api/oauth2/v2'
 
+    attr_reader :tier_titles
+
     def initialize(access_token: nil, campaign_id: nil)
       @access_token = (access_token || SiteSetting.patreon_donations_creator_access_token).to_s.strip
       @campaign_id = (campaign_id || SiteSetting.patreon_donations_campaign_id).to_s.strip
+      @tier_titles = {}
 
       if @access_token.blank?
         Rails.logger.error("Patreon API: No access token configured!")
@@ -50,7 +53,9 @@ module DiscoursePatreonDonations
         # Build tier lookup from included data
         (response['included'] || []).each do |included|
           next unless included['type'] == 'tier'
-          tier_map[included['id']] = included.dig('attributes', 'amount_cents') || 0
+          amount = included.dig('attributes', 'amount_cents') || 0
+          title = included.dig('attributes', 'title') || 'Unknown'
+          tier_map[included['id']] = { amount_cents: amount, title: title }
         end
 
         all_members.concat(response['data'] || [])
@@ -58,10 +63,17 @@ module DiscoursePatreonDonations
         break unless cursor
       end
 
+      # Build tier_titles map (amount_cents => title) for tier breakdown display
+      @tier_titles = {}
+      tier_map.each_value do |info|
+        @tier_titles[info[:amount_cents]] = info[:title]
+      end
+
       # Attach tier amount to each member for declined patron revenue calculation
       all_members.each do |member|
         tier_ids = member.dig('relationships', 'currently_entitled_tiers', 'data') || []
-        tier_amount = tier_ids.sum { |t| tier_map[t['id']] || 0 }
+        tier_info = tier_ids.map { |t| tier_map[t['id']] }.compact
+        tier_amount = tier_info.sum { |t| t[:amount_cents] }
         member['attributes']['tier_amount_cents'] = tier_amount if tier_amount > 0
       end
 

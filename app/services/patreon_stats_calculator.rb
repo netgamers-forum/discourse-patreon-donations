@@ -51,37 +51,15 @@ module DiscoursePatreonDonations
       recently_declined_members.sum { |m| tier_or_entitled_amount(m) } / 100.0
     end
 
-    # Calculates total processing fees based on per-member pledge amounts.
-    # Patreon charges different rates for payments under/over $3.
-    def processing_fee_estimate(standard_pct:, standard_fixed_cents:, micro_pct:, micro_fixed_cents:, threshold_cents: 300)
-      result = processing_fee_breakdown(
-        standard_pct: standard_pct, standard_fixed_cents: standard_fixed_cents,
-        micro_pct: micro_pct, micro_fixed_cents: micro_fixed_cents,
-        threshold_cents: threshold_cents
-      )
-      result.sum { |r| r[:fee] }
-    end
-
-    # Returns per-tier breakdown of processing fees for display
-    def processing_fee_breakdown(standard_pct:, standard_fixed_cents:, micro_pct:, micro_fixed_cents:, threshold_cents: 300)
+    # Returns per-tier breakdown of active patrons with counts
+    def tier_breakdown(tier_titles: {})
       groups = active_members.group_by { |m| entitled_amount(m) }
 
       groups.map do |amount_cents, members|
-        count = members.length
-        if amount_cents >= threshold_cents
-          fee_per = (amount_cents * standard_pct / 100.0) + standard_fixed_cents
-          rate_label = "#{standard_pct}% + $#{standard_fixed_cents / 100.0}"
-        else
-          fee_per = (amount_cents * micro_pct / 100.0) + micro_fixed_cents
-          rate_label = "#{micro_pct}% + $#{micro_fixed_cents / 100.0}"
-        end
-
         {
+          title: tier_titles[amount_cents] || "Custom",
           amount: amount_cents / 100.0,
-          count: count,
-          rate: rate_label,
-          fee_per: fee_per / 100.0,
-          fee: (fee_per * count) / 100.0
+          count: members.length
         }
       end.sort_by { |r| r[:amount] }
     end

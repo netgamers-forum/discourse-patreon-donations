@@ -22,7 +22,7 @@ class PatreonStatsController < ::ApplicationController
     if stats
       monthly_change = calculate_monthly_change(stats[:monthly_estimate], monthly_history)
       patron_changes = calculate_patron_changes(stats[:active_member_ids], monthly_history)
-      fee_breakdown = calculate_fee_breakdown(stats[:monthly_estimate], stats[:processing_fee])
+      fee_breakdown = calculate_fee_breakdown(stats[:monthly_estimate])
 
       render json: {
         stats: stats.except(:active_member_ids).merge(
@@ -128,21 +128,18 @@ class PatreonStatsController < ::ApplicationController
     nil
   end
 
-  def calculate_fee_breakdown(gross, processing_fee)
+  def calculate_fee_breakdown(gross)
     platform_pct = SiteSetting.patreon_donations_platform_fee_percentage
     tax_pct = SiteSetting.patreon_donations_tax_rate_percentage
 
     platform_fee = gross * platform_pct / 100.0
-    processing_fee ||= 0
-    after_all_fees = gross - platform_fee - processing_fee
-
-    tax_amount = after_all_fees * tax_pct / 100.0
-    net_income = after_all_fees - tax_amount
+    after_platform_fee = gross - platform_fee
+    tax_amount = after_platform_fee * tax_pct / 100.0
+    net_income = after_platform_fee - tax_amount
 
     {
       platform_fee: platform_fee,
-      processing_fee: processing_fee,
-      after_all_fees: after_all_fees,
+      after_platform_fee: after_platform_fee,
       tax_amount: tax_amount,
       net_income: net_income
     }
@@ -168,23 +165,13 @@ class PatreonStatsController < ::ApplicationController
 
     calculator = DiscoursePatreonDonations::PatreonStatsCalculator.new(campaign_data, members)
 
-    fee_params = {
-      standard_pct: SiteSetting.patreon_donations_processing_fee_percentage,
-      standard_fixed_cents: SiteSetting.patreon_donations_processing_fee_fixed_cents,
-      micro_pct: SiteSetting.patreon_donations_micro_processing_fee_percentage,
-      micro_fixed_cents: SiteSetting.patreon_donations_micro_processing_fee_fixed_cents
-    }
-    processing_fee = calculator.processing_fee_estimate(**fee_params)
-    processing_fee_breakdown = calculator.processing_fee_breakdown(**fee_params)
-
     {
       patron_count: calculator.patron_count,
       active_patron_count: calculator.active_patron_count,
       free_member_count: calculator.free_member_count,
       total_member_count: calculator.total_member_count,
       monthly_estimate: calculator.monthly_estimate,
-      processing_fee: processing_fee,
-      processing_fee_breakdown: processing_fee_breakdown,
+      tier_breakdown: calculator.tier_breakdown(tier_titles: client.tier_titles),
       last_month_total: calculator.last_month_total,
       currency: calculator.currency,
       active_member_ids: calculator.active_member_ids,

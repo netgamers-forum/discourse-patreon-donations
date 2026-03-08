@@ -26,30 +26,6 @@ patreon_donations:
     max: 100
     type: float
     client: true
-  patreon_donations_processing_fee_percentage:
-    default: 2.9
-    min: 0
-    max: 100
-    type: float
-    client: true
-  patreon_donations_processing_fee_fixed_cents:
-    default: 30
-    min: 0
-    max: 1000
-    type: integer
-    client: true
-  patreon_donations_micro_processing_fee_percentage:
-    default: 5.0
-    min: 0
-    max: 100
-    type: float
-    client: true
-  patreon_donations_micro_processing_fee_fixed_cents:
-    default: 10
-    min: 0
-    max: 1000
-    type: integer
-    client: true
   patreon_donations_tax_rate_percentage:
     default: 43.0
     min: 0

@@ -33,6 +33,32 @@
       </div>
     </div>
 
+    {{#if model.stats.tier_breakdown}}
+      <div class="patreon-tier-breakdown">
+        <h3>Patron Tier Breakdown</h3>
+        <div class="tier-breakdown-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Amount</th>
+                <th>Patrons</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each model.stats.tier_breakdown as |tier|}}
+                <tr>
+                  <td>{{tier.title}}</td>
+                  <td>{{model.stats.currency}} {{multiply tier.amount 1}}</td>
+                  <td>{{tier.count}}</td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {{/if}}
+
     <div class="patreon-breakdown">
       <h3>Revenue Breakdown</h3>
       <div class="breakdown-content">
@@ -46,14 +72,9 @@
             <span class="breakdown-label">Less platform fee ({{siteSettings.patreon_donations_platform_fee_percentage}}%):</span>
             <span class="breakdown-value">-{{model.stats.currency}} {{multiply model.stats.platform_fee 1}}</span>
           </div>
-          <div class="breakdown-row deduction">
-            <span class="breakdown-label"><span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">Per-tier breakdown:{{#each model.stats.processing_fee_breakdown as |tier|}}
-${{tier.amount}} x {{tier.count}} patrons ({{tier.rate}}) = ${{tier.fee}}{{/each}}</span></span> Less processing fees:</span>
-            <span class="breakdown-value">-{{model.stats.currency}} {{multiply model.stats.processing_fee 1}}</span>
-          </div>
           <div class="breakdown-row subtotal">
-            <span class="breakdown-label">Subtotal after Patreon fees:</span>
-            <span class="breakdown-value">{{model.stats.currency}} {{multiply model.stats.after_all_fees 1}}</span>
+            <span class="breakdown-label">After platform fee:</span>
+            <span class="breakdown-value">{{model.stats.currency}} {{multiply model.stats.after_platform_fee 1}}</span>
           </div>
           <div class="breakdown-row deduction">
             <span class="breakdown-label">Less taxes ({{siteSettings.patreon_donations_tax_rate_percentage}}%):</span>
@@ -64,6 +85,7 @@ ${{tier.amount}} x {{tier.count}} patrons ({{tier.rate}}) = ${{tier.fee}}{{/each
             <span class="breakdown-value">{{model.stats.currency}} {{multiply model.stats.net_income 1}}</span>
           </div>
         </div>
+        <p class="breakdown-fees-note">Note: Patreon also deducts payment processing fees per transaction before payout, which vary by payment method and currency. <a href="https://support.patreon.com/hc/en-us/articles/11111747095181-Creator-fees-overview" target="_blank" rel="noopener noreferrer">Learn more about creator fees</a>.</p>
         {{#if model.stats.recently_declined_count}}
           <p class="breakdown-declined-note">{{d-icon "circle-exclamation"}} {{model.stats.recently_declined_count}} declined payment(s) in the last 25 days totalling ~{{model.stats.currency}} {{multiply model.stats.recently_declined_amount 1}} (based on tier). These patrons may need to update their payment method.</p>
         {{/if}}
