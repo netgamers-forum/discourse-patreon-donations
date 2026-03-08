@@ -11,7 +11,7 @@
   {{#if model.stats}}
     <div class="patreon-stats-grid">
       <div class="stat-card">
-        {{#if model.stats.free_member_count}}<span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">Paying patrons only. There are also {{model.stats.free_member_count}} free members on the campaign ({{model.stats.total_member_count}} total).</span></span>{{/if}}
+        {{#if model.stats.free_member_count}}<span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">Active paying patrons whose last payment was not declined. There are also {{model.stats.free_member_count}} free members on the campaign.</span></span>{{/if}}
         <h3>Current Active Patrons</h3>
         <p class="stat-value">{{model.stats.active_patron_count}}</p>
       </div>
