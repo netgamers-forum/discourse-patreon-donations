@@ -10,7 +10,7 @@ module DiscoursePatreonDonations
     validates :patron_count, presence: true, numericality: { greater_than_or_equal_to: 0 }
     validates :total_amount_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
 
-    def self.record_monthly_snapshot(campaign_id, patron_count, total_amount_cents, date = Time.now.utc, platform_fee_percentage: nil, tax_rate_percentage: nil, active_member_ids: nil, declined_count: nil)
+    def self.record_monthly_snapshot(campaign_id, patron_count, total_amount_cents, date = Time.now.utc, platform_fee_percentage: nil, tax_rate_percentage: nil, processing_fee_total_cents: nil, active_member_ids: nil, declined_count: nil)
       year = date.year
       month = date.month
 
@@ -24,6 +24,7 @@ module DiscoursePatreonDonations
       stat.total_amount_cents = total_amount_cents
       stat.platform_fee_percentage = platform_fee_percentage
       stat.tax_rate_percentage = tax_rate_percentage
+      stat.processing_fee_total_cents = processing_fee_total_cents
       stat.active_member_ids = active_member_ids&.to_json
       stat.declined_count = declined_count
       stat.save!
@@ -60,6 +61,12 @@ module DiscoursePatreonDonations
         calculator = DiscoursePatreonDonations::PatreonStatsCalculator.new(campaign_data, members)
         current_patron_count = calculator.active_patron_count
         current_amount_cents = (calculator.monthly_estimate * 100).to_i
+        processing_fee_cents = (calculator.processing_fee_estimate(
+          standard_pct: SiteSetting.patreon_donations_processing_fee_percentage,
+          standard_fixed_cents: SiteSetting.patreon_donations_processing_fee_fixed_cents,
+          micro_pct: SiteSetting.patreon_donations_micro_processing_fee_percentage,
+          micro_fixed_cents: SiteSetting.patreon_donations_micro_processing_fee_fixed_cents
+        ) * 100).to_i
 
         campaign_id = SiteSetting.patreon_donations_campaign_id
         now = Time.now.utc
@@ -74,6 +81,7 @@ module DiscoursePatreonDonations
           now,
           platform_fee_percentage: SiteSetting.patreon_donations_platform_fee_percentage,
           tax_rate_percentage: SiteSetting.patreon_donations_tax_rate_percentage,
+          processing_fee_total_cents: processing_fee_cents,
           active_member_ids: calculator.active_member_ids,
           declined_count: calculator.declined_patrons_count
         )
@@ -100,8 +108,10 @@ module DiscoursePatreonDonations
     def net_amount
       return nil unless platform_fee_percentage && tax_rate_percentage
 
-      after_fee = total_amount * (1 - platform_fee_percentage / 100.0)
-      after_fee * (1 - tax_rate_percentage / 100.0)
+      after_platform = total_amount * (1 - platform_fee_percentage / 100.0)
+      processing = (processing_fee_total_cents || 0) / 100.0
+      after_fees = after_platform - processing
+      after_fees * (1 - tax_rate_percentage / 100.0)
     end
 
     def to_h

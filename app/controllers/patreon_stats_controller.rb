@@ -22,12 +22,14 @@ class PatreonStatsController < ::ApplicationController
     if stats
       monthly_change = calculate_monthly_change(stats[:monthly_estimate], monthly_history)
       patron_changes = calculate_patron_changes(stats[:active_member_ids], monthly_history)
+      fee_breakdown = calculate_fee_breakdown(stats[:monthly_estimate], stats[:processing_fee])
 
       render json: {
         stats: stats.except(:active_member_ids).merge(
           monthly_change: monthly_change,
           patrons_joined: patron_changes[:joined],
-          patrons_left: patron_changes[:left]
+          patrons_left: patron_changes[:left],
+          **fee_breakdown
         ),
         monthly_history: monthly_history
       }
@@ -126,6 +128,26 @@ class PatreonStatsController < ::ApplicationController
     nil
   end
 
+  def calculate_fee_breakdown(gross, processing_fee)
+    platform_pct = SiteSetting.patreon_donations_platform_fee_percentage
+    tax_pct = SiteSetting.patreon_donations_tax_rate_percentage
+
+    platform_fee = gross * platform_pct / 100.0
+    processing_fee ||= 0
+    after_all_fees = gross - platform_fee - processing_fee
+
+    tax_amount = after_all_fees * tax_pct / 100.0
+    net_income = after_all_fees - tax_amount
+
+    {
+      platform_fee: platform_fee,
+      processing_fee: processing_fee,
+      after_all_fees: after_all_fees,
+      tax_amount: tax_amount,
+      net_income: net_income
+    }
+  end
+
   def calculate_fresh_stats
     client = DiscoursePatreonDonations::PatreonApiClient.new
     campaign_data = client.fetch_campaign_data
@@ -146,12 +168,20 @@ class PatreonStatsController < ::ApplicationController
 
     calculator = DiscoursePatreonDonations::PatreonStatsCalculator.new(campaign_data, members)
 
+    processing_fee = calculator.processing_fee_estimate(
+      standard_pct: SiteSetting.patreon_donations_processing_fee_percentage,
+      standard_fixed_cents: SiteSetting.patreon_donations_processing_fee_fixed_cents,
+      micro_pct: SiteSetting.patreon_donations_micro_processing_fee_percentage,
+      micro_fixed_cents: SiteSetting.patreon_donations_micro_processing_fee_fixed_cents
+    )
+
     {
       patron_count: calculator.patron_count,
       active_patron_count: calculator.active_patron_count,
       free_member_count: calculator.free_member_count,
       total_member_count: calculator.total_member_count,
       monthly_estimate: calculator.monthly_estimate,
+      processing_fee: processing_fee,
       last_month_total: calculator.last_month_total,
       currency: calculator.currency,
       active_member_ids: calculator.active_member_ids,

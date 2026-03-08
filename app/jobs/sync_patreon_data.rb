@@ -33,10 +33,18 @@ module ::Jobs
       return unless campaign_data && members
 
       calculator = DiscoursePatreonDonations::PatreonStatsCalculator.new(campaign_data, members)
-      
+
+      processing_fee = calculator.processing_fee_estimate(
+        standard_pct: SiteSetting.patreon_donations_processing_fee_percentage,
+        standard_fixed_cents: SiteSetting.patreon_donations_processing_fee_fixed_cents,
+        micro_pct: SiteSetting.patreon_donations_micro_processing_fee_percentage,
+        micro_fixed_cents: SiteSetting.patreon_donations_micro_processing_fee_fixed_cents
+      )
+
       stats = {
         patron_count: calculator.active_patron_count,
         monthly_estimate: calculator.monthly_estimate,
+        processing_fee: processing_fee,
         last_month_total: calculator.last_month_total,
         active_member_ids: calculator.active_member_ids,
         declined_count: calculator.declined_patrons_count,
@@ -76,6 +84,7 @@ module ::Jobs
         now,
         platform_fee_percentage: SiteSetting.patreon_donations_platform_fee_percentage,
         tax_rate_percentage: SiteSetting.patreon_donations_tax_rate_percentage,
+        processing_fee_total_cents: (stats[:processing_fee] * 100).to_i,
         active_member_ids: stats[:active_member_ids],
         declined_count: stats[:declined_count]
       )

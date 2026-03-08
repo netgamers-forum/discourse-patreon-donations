@@ -43,20 +43,24 @@
             <span class="breakdown-value">{{model.stats.currency}} {{multiply model.stats.monthly_estimate 1}}</span>
           </div>
           <div class="breakdown-row deduction">
-            <span class="breakdown-label">Less Patreon fee ({{siteSettings.patreon_donations_platform_fee_percentage}}%):</span>
-            <span class="breakdown-value">-{{model.stats.currency}} {{multiply model.stats.monthly_estimate (divide siteSettings.patreon_donations_platform_fee_percentage 100)}}</span>
+            <span class="breakdown-label">Less platform fee ({{siteSettings.patreon_donations_platform_fee_percentage}}%):</span>
+            <span class="breakdown-value">-{{model.stats.currency}} {{multiply model.stats.platform_fee 1}}</span>
+          </div>
+          <div class="breakdown-row deduction">
+            <span class="breakdown-label"><span class="patreon-info-tooltip">{{d-icon "circle-info"}}<span class="patreon-tooltip-content">Calculated per patron: {{siteSettings.patreon_donations_processing_fee_percentage}}% + ${{divide siteSettings.patreon_donations_processing_fee_fixed_cents 100}} for pledges >= $3, {{siteSettings.patreon_donations_micro_processing_fee_percentage}}% + ${{divide siteSettings.patreon_donations_micro_processing_fee_fixed_cents 100}} for pledges < $3.</span></span> Less processing fees:</span>
+            <span class="breakdown-value">-{{model.stats.currency}} {{multiply model.stats.processing_fee 1}}</span>
           </div>
           <div class="breakdown-row subtotal">
-            <span class="breakdown-label">Subtotal after Patreon:</span>
-            <span class="breakdown-value">{{model.stats.currency}} {{multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))}}</span>
+            <span class="breakdown-label">Subtotal after Patreon fees:</span>
+            <span class="breakdown-value">{{model.stats.currency}} {{multiply model.stats.after_all_fees 1}}</span>
           </div>
           <div class="breakdown-row deduction">
             <span class="breakdown-label">Less taxes ({{siteSettings.patreon_donations_tax_rate_percentage}}%):</span>
-            <span class="breakdown-value">-{{model.stats.currency}} {{multiply (multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))) (divide siteSettings.patreon_donations_tax_rate_percentage 100)}}</span>
+            <span class="breakdown-value">-{{model.stats.currency}} {{multiply model.stats.tax_amount 1}}</span>
           </div>
           <div class="breakdown-row total">
-            <span class="breakdown-label">Net income available ({{subtract 100 siteSettings.patreon_donations_tax_rate_percentage}}%):</span>
-            <span class="breakdown-value">{{model.stats.currency}} {{multiply (multiply model.stats.monthly_estimate (subtract 1 (divide siteSettings.patreon_donations_platform_fee_percentage 100))) (subtract 1 (divide siteSettings.patreon_donations_tax_rate_percentage 100))}}</span>
+            <span class="breakdown-label">Net income available:</span>
+            <span class="breakdown-value">{{model.stats.currency}} {{multiply model.stats.net_income 1}}</span>
           </div>
         </div>
         {{#if model.stats.recently_declined_count}}

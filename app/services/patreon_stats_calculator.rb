@@ -51,6 +51,20 @@ module DiscoursePatreonDonations
       recently_declined_members.sum { |m| tier_or_entitled_amount(m) } / 100.0
     end
 
+    # Calculates total processing fees based on per-member pledge amounts.
+    # Patreon charges different rates for payments under/over $3.
+    def processing_fee_estimate(standard_pct:, standard_fixed_cents:, micro_pct:, micro_fixed_cents:, threshold_cents: 300)
+      total_fee_cents = active_members.sum do |m|
+        amount = entitled_amount(m)
+        if amount >= threshold_cents
+          (amount * standard_pct / 100.0) + standard_fixed_cents
+        else
+          (amount * micro_pct / 100.0) + micro_fixed_cents
+        end
+      end
+      total_fee_cents / 100.0
+    end
+
     def last_month_total
       last_month_members.sum { |m| entitled_amount(m) } / 100.0
     end
