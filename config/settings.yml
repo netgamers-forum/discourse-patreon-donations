@@ -2,6 +2,18 @@ patreon_donations:
   patreon_donations_enabled:
     default: false
     client: true
+  patreon_donations_creator_access_token:
+    default: ''
+    secret: true
+  patreon_donations_creator_refresh_token:
+    default: ''
+    secret: true
+  patreon_donations_client_id:
+    default: ''
+    secret: true
+  patreon_donations_client_secret:
+    default: ''
+    secret: true
   patreon_donations_api_version:
     default: 'v2'
     type: enum

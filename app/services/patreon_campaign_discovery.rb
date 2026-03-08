@@ -3,7 +3,7 @@
 module DiscoursePatreonDonations
   class PatreonCampaignDiscovery
     def self.discover_and_save
-      return false unless SiteSetting.patreon_creator_access_token.present?
+      return false unless SiteSetting.patreon_donations_creator_access_token.present?
       return false unless SiteSetting.patreon_donations_campaign_url.present?
 
       client = PatreonApiClient.new
