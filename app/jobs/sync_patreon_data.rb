@@ -58,7 +58,7 @@ module ::Jobs
       Rails.cache.write(
         "patreon_stats:#{SiteSetting.patreon_donations_campaign_id}",
         stats,
-        expires_in: SiteSetting.patreon_donations_cache_duration.minutes
+        expires_in: SiteSetting.patreon_donations_cache_duration.hours
       )
     end
 
