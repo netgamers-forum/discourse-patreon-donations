@@ -91,10 +91,12 @@ class PatreonStatsController < ::ApplicationController
     []
   end
 
+  # Compares current live member IDs against the most recent snapshot.
+  # Snapshots are taken once at the start of each month, so this shows
+  # how many patrons joined/left since that snapshot was recorded.
   def calculate_patron_changes(current_member_ids, monthly_history)
     return { joined: nil, left: nil } if monthly_history.empty? || current_member_ids.nil?
 
-    # Find the most recent snapshot that has member ID data
     last_record = DiscoursePatreonDonations::PatreonMonthlyStat
       .where(campaign_id: SiteSetting.patreon_donations_campaign_id)
       .where.not(active_member_ids: nil)
@@ -115,11 +117,12 @@ class PatreonStatsController < ::ApplicationController
     { joined: nil, left: nil }
   end
 
+  # Compares current live estimate against the most recent snapshot.
+  # Snapshots are taken once at the start of each month, so mid-month
+  # this reflects how much the estimate changed since the snapshot.
   def calculate_monthly_change(current_estimate, monthly_history)
     return nil if monthly_history.empty?
 
-    # Use the most recent snapshot as the baseline regardless of which month it belongs to.
-    # N/A is only appropriate when there is no historical data at all.
     last_snapshot = monthly_history.last
     return nil unless last_snapshot
 

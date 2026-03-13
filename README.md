@@ -65,15 +65,19 @@ A Sidekiq background job syncs data from the Patreon API at the interval set by 
 
 The summary boxes show:
 - Current active patron count (paying patrons only)
-- Patron changes compared to the last snapshot (joined/left)
+- Patron changes since the last snapshot (joined/left)
 - Estimated revenue for the current month, derived from the sum of active patron pledges
-- Difference between the current estimate and the most recent monthly snapshot
+- Difference between the current live estimate and the last snapshot amount
 
-A revenue breakdown section shows the estimated net income after platform fees and taxes.
+A patrons breakdown section shows how many patrons are on each tier. A revenue breakdown section shows the estimated net income after platform fees and taxes.
+
+**Monthly snapshots**
+
+During the first sync of each calendar month, the job records a snapshot of the patron count, total pledge amount, and active member IDs. Once written, the snapshot is immutable for that month. This provides a fixed baseline: the "Patron Changes" and "Change from Last Month" cards compare the current live data against this snapshot. For example, if the snapshot was taken on March 1st with $237.56 and 100 patrons, and a patron upgrades their tier on March 15th, the summary will show the difference in amount and any patron joins/leaves since that March 1st snapshot.
 
 **Monthly history**
 
-During the first sync that runs in a new calendar month, the job records a snapshot of the patron count, total pledge amount, and active member IDs for that month. Once written, the snapshot is not updated again within the same month. This gives a stable baseline for the month-over-month change calculation and populates the 12-month history table. Patron changes (joined/left) are computed by comparing member IDs between consecutive snapshots.
+The 12-month history table is populated from these monthly snapshots. Patron changes between months (joined/left) are computed by comparing member IDs between consecutive snapshots.
 
 **Token refresh**
 
